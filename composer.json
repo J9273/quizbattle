@@ -1,0 +1,17 @@
+{
+    "name": "quiz-app/websocket",
+    "description": "Real-time Quiz Application with WebSocket Support",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "cboden/ratchet": "^0.4.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "QuizApp\\": "src/"
+        }
+    },
+    "scripts": {
+        "start-server": "php websocket-server.php"
+    }
+}

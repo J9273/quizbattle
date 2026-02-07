@@ -1,0 +1,57 @@
+# Render Blueprint for Quiz Application
+# This file defines the infrastructure for automatic deployment
+
+services:
+  # Web Service (PHP Application)
+  - type: web
+    name: quiz-app-web
+    runtime: php
+    plan: starter  # or 'free' for testing
+    region: oregon  # Choose: oregon, frankfurt, singapore
+    branch: main
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: php -S 0.0.0.0:$PORT -t .
+    healthCheckPath: /admin/login.php
+    envVars:
+      - key: PHP_VERSION
+        value: "8.1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quiz-app-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+    
+  # Background Worker (WebSocket Server)
+  - type: worker
+    name: quiz-app-websocket
+    runtime: php
+    plan: starter  # Workers not available on free tier
+    region: oregon
+    branch: main
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: php websocket-server.php
+    envVars:
+      - key: PHP_VERSION
+        value: "8.1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quiz-app-db
+          property: connectionString
+      - key: WEBSOCKET_PORT
+        value: "8080"
+
+databases:
+  # PostgreSQL Database
+  - name: quiz-app-db
+    databaseName: quiz_production
+    plan: starter  # or 'free' for 90-day trial
+    region: oregon
+    ipAllowList: []  # Empty = allow all (or specify IPs for security)
+
+# Optional: Cron Jobs for maintenance tasks
+# - type: cron
+#   name: quiz-cleanup
+#   schedule: "0 2 * * *"  # Daily at 2 AM
+#   buildCommand: composer install --no-dev
+#   startCommand: php maintenance/cleanup.php
