@@ -26,5 +26,5 @@ RUN composer install --no-dev --optimize-autoloader
 # Expose port
 EXPOSE 8080
 
-# Start PHP server with router script
+# Start PHP server
 CMD php -S 0.0.0.0:$PORT

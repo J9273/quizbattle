@@ -8,7 +8,7 @@
 $database_url = getenv('DATABASE_URL');
 
 if ($database_url) {
-    // Parse DATABASE_URL: postgresql://quizdb_f20w_user:SKckt79lkambNOiSbczDJovxb3rSzdvF@dpg-d63s0hchg0os73confcg-a/quizdb_f20w
+    // Parse DATABASE_URL: postgres://user:pass@host:port/dbname
     $db = parse_url($database_url);
     
     define('DB_HOST', $db['host']);
@@ -19,10 +19,10 @@ if ($database_url) {
     define('DB_TYPE', 'pgsql');
 } else {
     // Local development fallback
-    define('DB_HOST', 'dpg-d63s0hchg0os73confcg-a');
-    define('DB_USER', 'quizdb_f20w_user');
-    define('DB_PASS', 'quizdb_f20w_user');
-    define('DB_NAME', 'quizdb_f20w');
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'postgres');
+    define('DB_PASS', 'postgres');
+    define('DB_NAME', 'quiz_app');
     define('DB_PORT', 5432);
     define('DB_TYPE', 'pgsql');
 }
