@@ -11,3 +11,12 @@
         }
     }
 }
+
+{
+    "name": "quiz-battle/render",
+    "description": "Quiz Battle Application",
+    "require": {
+        "php": ">=7.4",
+        "cboden/ratchet": "^0.4.4"
+    }
+}
