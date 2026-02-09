@@ -3,20 +3,12 @@
     "description": "Quiz Battle Application for Render",
     "type": "project",
     "require": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+		"cboden/ratchet": "^0.4.4"
     },
     "autoload": {
         "psr-4": {
             "QuizBattle\\": "src/"
         }
-    }
-}
-
-{
-    "name": "quiz-battle/render",
-    "description": "Quiz Battle Application",
-    "require": {
-        "php": ">=7.4",
-        "cboden/ratchet": "^0.4.4"
     }
 }
