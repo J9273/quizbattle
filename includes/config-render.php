@@ -3,6 +3,23 @@
  * Database Configuration for Render (PostgreSQL)
  * This replaces the MySQL connection in the original app
  */
+// Session settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_strict_mode', 1);
+if (APP_ENV === 'production') {
+    ini_set('session.cookie_secure', 1); // HTTPS only
+}
+
+// Error reporting
+if (APP_ENV === 'production') {
+    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
 
 // Get database URL from environment (Render sets this automatically)
 $database_url = getenv('DATABASE_URL');
@@ -60,19 +77,3 @@ if (APP_ENV === 'production' && getenv('RENDER_SERVICE_NAME')) {
     define('WS_URL', 'ws://' . WS_HOST . ':' . WS_PORT);
 }
 
-// Session settings
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_strict_mode', 1);
-if (APP_ENV === 'production') {
-    ini_set('session.cookie_secure', 1); // HTTPS only
-}
-
-// Error reporting
-if (APP_ENV === 'production') {
-    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
-    ini_set('display_errors', 0);
-    ini_set('log_errors', 1);
-} else {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-}
