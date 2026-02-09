@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle - Host</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes newBuzz {
+            0%, 100% { background-color: rgb(254, 226, 226); }
+            50% { background-color: rgb(252, 165, 165); }
+        }
+        .new-buzz { animation: newBuzz 1s ease-in-out 3; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    
+    <!-- Connection Status -->
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connecting...
+    </div>
+
+    <!-- Join Screen -->
+    <div id="join-screen" class="min-h-screen flex items-center justify-center p-4 pt-16">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">🎮 Quiz Battle</h1>
+            <p class="text-center text-gray-600 mb-8">Host Control Panel</p>
+
+            <form id="join-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Episode ID</label>
+                    <input type="number" 
+                           id="episode-id" 
+                           required
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter episode ID">
+                    <p class="text-xs text-gray-500 mt-1">Get this from your admin panel</p>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-all">
+                    Start Hosting
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Host Screen -->
+    <div id="host-screen" class="hidden min-h-screen p-4 pt-16">
+        
+        <!-- Top Bar -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Host Control Panel</h2>
+                    <p class="text-gray-600">Episode: <span id="display-episode-id">0</span></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="player-count">0</div>
+                        <div class="text-xs text-gray-600">Players</div>
+                    </div>
+                    <button onclick="loadQuestions()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        Refresh Questions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <!-- Left: Question Control -->
+            <div class="lg:col-span-2 space-y-4">
+                
+                <!-- Question Selector -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Select Question</h3>
+                    
+                    <select id="question-select" 
+                            class="w-full p-3 border-2 border-gray-300 rounded-lg mb-4"
+                            onchange="previewQuestion()">
+                        <option value="">-- Select a question --</option>
+                    </select>
+
+                    <div id="question-preview" class="hidden bg-gray-50 p-4 rounded-lg mb-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span id="preview-theme" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                            <span id="preview-level" class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                            <span id="preview-points" class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                        </div>
+                        <p id="preview-question" class="text-lg font-medium text-gray-800 mb-3"></p>
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded">
+                            <p class="text-xs font-bold text-yellow-800">ANSWER:</p>
+                            <p id="preview-answer" class="text-lg font-bold text-yellow-900"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="displayQuestion()" 
+                                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg">
+                            📺 Display Question
+                        </button>
+                        <button onclick="revealAnswer()" 
+                                class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg">
+                            👁️ Reveal Answer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Question Display -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Currently Displayed</h3>
+                    
+                    <div id="no-question" class="text-center py-8 text-gray-400">
+                        <p class="text-lg">No question displayed yet</p>
+                    </div>
+
+                    <div id="current-question" class="hidden">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
+                            <p class="text-sm text-blue-700 mb-2">
+                                <span id="current-theme" class="font-bold"></span> • 
+                                <span id="current-level" class="font-bold"></span> • 
+                                <span id="current-points" class="font-bold"></span> points
+                            </p>
+                            <p id="current-text" class="text-xl font-bold text-gray-800"></p>
+                        </div>
+                        
+                        <div id="current-answer-display" class="hidden bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded">
+                            <p class="text-sm font-bold text-yellow-800">ANSWER REVEALED:</p>
+                            <p id="current-answer" class="text-2xl font-bold text-yellow-900"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buzzes Received -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">
+                        🔔 Buzzes Received
+                        <span id="buzz-count" class="text-sm text-gray-600">(0)</span>
+                    </h3>
+                    
+                    <div id="buzzes-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        <p class="text-gray-400 text-center py-4">No buzzes yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Scoreboard -->
+            <div class="space-y-4">
+                
+                <!-- Scoreboard -->
+                <div class="bg-white rounded-lg shadow-lg p-6 sticky top-20">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">🏆 Scoreboard</h3>
+                        <button onclick="requestScores()" 
+                                class="text-sm text-blue-600 hover:underline">
+                            Refresh
+                        </button>
+                    </div>
+                    
+                    <div id="scoreboard" class="space-y-2">
+                        <!-- Scores will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Award</h3>
+                    <p class="text-sm text-gray-600 mb-3">Award points to the selected team</p>
+                    
+                    <div class="space-y-3">
+                        <select id="award-team" class="w-full p-2 border rounded">
+                            <option value="">-- Select team --</option>
+                        </select>
+                        
+                        <input type="number" 
+                               id="award-points" 
+                               class="w-full p-2 border rounded" 
+                               placeholder="Points"
+                               min="1">
+                        
+                        <button onclick="awardPoints()" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">
+                            Award Points
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let episodeId = null;
+        let currentQuestion = null;
+        let questions = [];
+        let buzzesReceived = [];
+
+        // Initialize WebSocket
+        function connectWebSocket() {
+            const wsUrl = window.location.hostname.includes('render.com') 
+                ? 'wss://' + window.location.hostname.replace('quizbattle', 'quizbattle-ws') + ':8080'
+                : 'ws://localhost:8080';
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to server');
+                updateStatus('connected', 'Connected ✓');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('error', 'Connection Error');
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected', 'Disconnected');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function updateStatus(status, text) {
+            const statusBar = document.getElementById('status-bar');
+            const colors = {
+                connected: 'bg-green-500',
+                disconnected: 'bg-red-500',
+                error: 'bg-red-600'
+            };
+            statusBar.className = `fixed top-0 left-0 right-0 px-4 py-2 text-center font-bold z-50 text-white ${colors[status]}`;
+            statusBar.textContent = text;
+        }
+
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'host_connected':
+                    onHostConnected(data);
+                    break;
+                case 'player_joined':
+                    onPlayerJoined(data);
+                    break;
+                case 'player_left':
+                    onPlayerLeft(data);
+                    break;
+                case 'buzz_received':
+                    onBuzzReceived(data);
+                    break;
+                case 'scores_updated':
+                    updateScoreboard(data.scores);
+                    break;
+                case 'question_displayed':
+                    onQuestionDisplayed(data.question);
+                    break;
+            }
+        }
+
+        // Join form
+        document.getElementById('join-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            episodeId = document.getElementById('episode-id').value;
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'join_as_host',
+                    episode_id: parseInt(episodeId)
+                }));
+            }
+        });
+
+        function onHostConnected(data) {
+            document.getElementById('display-episode-id').textContent = data.episode_id;
+            document.getElementById('player-count').textContent = data.player_count;
+            
+            document.getElementById('join-screen').classList.add('hidden');
+            document.getElementById('host-screen').classList.remove('hidden');
+            
+            updateScoreboard(data.scores);
+            loadQuestions();
+        }
+
+        function onPlayerJoined(data) {
+            document.getElementById('player-count').textContent = data.player_count;
+            showNotification(`${data.team_name} joined!`, 'info');
+        }
+
+        function onPlayerLeft(data) {
+            document.getElementById('player-count').textContent = data.player_count;
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/admin/api/get_questions.php');
+                const data = await response.json();
+                questions = data.questions || [];
+                
+                const select = document.getElementById('question-select');
+                select.innerHTML = '<option value="">-- Select a question --</option>';
+                
+                questions.forEach(q => {
+                    const option = document.createElement('option');
+                    option.value = q.id;
+                    option.textContent = `[${q.level.toUpperCase()}] ${q.theme}: ${q.question.substring(0, 60)}...`;
+                    option.dataset.question = JSON.stringify(q);
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load questions:', error);
+            }
+        }
+
+        function previewQuestion() {
+            const select = document.getElementById('question-select');
+            const option = select.options[select.selectedIndex];
+            
+            if (!option.value) {
+                document.getElementById('question-preview').classList.add('hidden');
+                return;
+            }
+            
+            const question = JSON.parse(option.dataset.question);
+            
+            document.getElementById('preview-theme').textContent = question.theme;
+            document.getElementById('preview-level').textContent = question.level.toUpperCase();
+            document.getElementById('preview-points').textContent = question.points + ' pts';
+            document.getElementById('preview-question').textContent = question.question;
+            document.getElementById('preview-answer').textContent = question.answer;
+            
+            document.getElementById('question-preview').classList.remove('hidden');
+        }
+
+        function displayQuestion() {
+            const select = document.getElementById('question-select');
+            const option = select.options[select.selectedIndex];
+            
+            if (!option.value) {
+                alert('Please select a question first');
+                return;
+            }
+            
+            const questionId = parseInt(option.value);
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'display_question',
+                    question_id: questionId
+                }));
+                
+                buzzesReceived = [];
+                updateBuzzesList();
+            }
+        }
+
+        function onQuestionDisplayed(question) {
+            currentQuestion = question;
+            
+            document.getElementById('no-question').classList.add('hidden');
+            document.getElementById('current-question').classList.remove('hidden');
+            document.getElementById('current-answer-display').classList.add('hidden');
+            
+            document.getElementById('current-theme').textContent = question.theme;
+            document.getElementById('current-level').textContent = question.level.toUpperCase();
+            document.getElementById('current-points').textContent = question.points;
+            document.getElementById('current-text').textContent = question.question;
+            document.getElementById('current-answer').textContent = question.answer;
+        }
+
+        function revealAnswer() {
+            if (!currentQuestion) {
+                alert('No question is currently displayed');
+                return;
+            }
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'reveal_answer',
+                    answer: currentQuestion.answer
+                }));
+                
+                document.getElementById('current-answer-display').classList.remove('hidden');
+            }
+        }
+
+        function onBuzzReceived(data) {
+            buzzesReceived.push(data);
+            updateBuzzesList();
+            
+            showNotification(`${data.team_name} buzzed in!`, 'buzz');
+        }
+
+        function updateBuzzesList() {
+            const list = document.getElementById('buzzes-list');
+            document.getElementById('buzz-count').textContent = `(${buzzesReceived.length})`;
+            
+            if (buzzesReceived.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 text-center py-4">No buzzes yet</p>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            buzzesReceived.forEach((buzz, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-red-50 border-l-4 border-red-500 p-4 rounded new-buzz';
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-gray-800">${buzz.team_name}</span>
+                        <span class="text-xs text-gray-600">#${index + 1}</span>
+                    </div>
+                    <p class="text-lg font-bold text-gray-900">${buzz.answer}</p>
+                    <button onclick="quickAward(${buzz.team_id})" 
+                            class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm">
+                        ✓ Award ${currentQuestion?.points || 0} pts
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function quickAward(teamId) {
+            if (!currentQuestion) return;
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'award_points',
+                    team_id: teamId,
+                    points: currentQuestion.points
+                }));
+            }
+        }
+
+        function awardPoints() {
+            const teamId = document.getElementById('award-team').value;
+            const points = document.getElementById('award-points').value;
+            
+            if (!teamId || !points) {
+                alert('Please select a team and enter points');
+                return;
+            }
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'award_points',
+                    team_id: parseInt(teamId),
+                    points: parseInt(points)
+                }));
+                
+                document.getElementById('award-points').value = '';
+            }
+        }
+
+        function updateScoreboard(scores) {
+            const scoreboard = document.getElementById('scoreboard');
+            const awardTeam = document.getElementById('award-team');
+            
+            scoreboard.innerHTML = '';
+            awardTeam.innerHTML = '<option value="">-- Select team --</option>';
+            
+            scores.forEach((team, index) => {
+                // Scoreboard
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-bold text-gray-600">${index + 1}.</span>
+                        <span class="font-bold text-gray-800">${team.team_name}</span>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+                `;
+                scoreboard.appendChild(div);
+                
+                // Award dropdown
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = `${team.team_name} (${team.points} pts)`;
+                awardTeam.appendChild(option);
+            });
+        }
+
+        function requestScores() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'get_scores' }));
+            }
+        }
+
+        function showNotification(message, type) {
+            // Simple notification - you can enhance this
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Initialize
+        connectWebSocket();
+    </script>
+</body>
+</html>

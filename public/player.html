@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle - Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgb(59, 130, 246); }
+            50% { border-color: rgb(239, 68, 68); }
+        }
+        .buzz-ready { animation: pulse-border 2s ease-in-out infinite; }
+        
+        @keyframes buzz-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .buzzing { animation: buzz-animation 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 min-h-screen">
+    
+    <!-- Connection Status -->
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connecting...
+    </div>
+
+    <!-- Join Screen -->
+    <div id="join-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">🎮 Quiz Battle</h1>
+            <p class="text-center text-gray-600 mb-8">Join an Episode</p>
+
+            <div id="join-error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+                <p id="join-error-text"></p>
+            </div>
+
+            <form id="join-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Episode ID</label>
+                    <input type="number" 
+                           id="episode-id" 
+                           required
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter episode ID">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Team Name</label>
+                    <input type="text" 
+                           id="team-name" 
+                           required
+                           maxlength="50"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter your team name">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-all transform hover:scale-105">
+                    Join Game
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden min-h-screen flex flex-col p-4 pt-16">
+        
+        <!-- Team Info Header -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800" id="display-team-name">Team Name</h2>
+                    <p class="text-gray-600">Episode: <span id="display-episode-id">0</span></p>
+                </div>
+                <div class="text-right">
+                    <div class="text-4xl font-bold text-blue-600" id="team-score">0</div>
+                    <div class="text-sm text-gray-600">points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Question -->
+        <div id="question-display" class="flex-1 flex items-center justify-center mb-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full">
+                <div id="waiting-state" class="text-center">
+                    <div class="text-6xl mb-4">⏳</div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-2">Waiting for Question...</h3>
+                    <p class="text-gray-600">The host will display the next question soon</p>
+                </div>
+
+                <div id="question-state" class="hidden">
+                    <!-- Theme Badge -->
+                    <div class="inline-block bg-blue-500 text-white px-6 py-2 rounded-full text-lg font-bold mb-4">
+                        <span id="q-theme">Theme</span>
+                    </div>
+
+                    <!-- Points Badge -->
+                    <div class="inline-block bg-green-500 text-white px-6 py-2 rounded-full text-lg font-bold mb-6 ml-3">
+                        🏆 <span id="q-points">0</span> points
+                    </div>
+
+                    <!-- Question Text -->
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8" id="q-text">
+                        Question text will appear here
+                    </h2>
+
+                    <!-- Answer Section -->
+                    <div id="answer-section" class="hidden mb-8">
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded">
+                            <p class="text-sm font-bold text-yellow-800 mb-2">ANSWER:</p>
+                            <p class="text-2xl font-bold text-yellow-900" id="q-answer">Answer here</p>
+                        </div>
+                    </div>
+
+                    <!-- Buzz Form -->
+                    <form id="buzz-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Answer:</label>
+                            <input type="text" 
+                                   id="answer-input" 
+                                   required
+                                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
+                                   placeholder="Type your answer...">
+                        </div>
+
+                        <button type="submit" 
+                                id="buzz-button"
+                                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6 px-8 rounded-lg text-2xl transition-all transform hover:scale-105 buzz-ready">
+                            🔔 BUZZ IN!
+                        </button>
+                    </form>
+
+                    <div id="buzz-confirmation" class="hidden mt-4 bg-green-100 border-l-4 border-green-500 p-4 rounded">
+                        <p class="text-green-800 font-bold">✅ Your answer has been submitted!</p>
+                        <p class="text-green-700 text-sm mt-1">Waiting for host to reveal the answer...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="bg-white rounded-lg shadow-lg p-4">
+            <h3 class="text-xl font-bold text-gray-800 mb-3">🏆 Scoreboard</h3>
+            <div id="scoreboard" class="space-y-2">
+                <!-- Scores will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let episodeId = null;
+        let teamName = null;
+        let currentQuestionId = null;
+
+        // Initialize WebSocket connection
+        function connectWebSocket() {
+            // Use Render's internal service name in production, or localhost for dev
+            const wsUrl = window.location.hostname.includes('render.com') 
+                ? 'wss://' + window.location.hostname.replace('quizbattle', 'quizbattle-ws') + ':8080'
+                : 'ws://localhost:8080';
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to server');
+                updateStatus('connected', 'Connected ✓');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('error', 'Connection Error');
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected');
+                updateStatus('disconnected', 'Disconnected');
+                setTimeout(connectWebSocket, 3000); // Reconnect after 3s
+            };
+        }
+
+        function updateStatus(status, text) {
+            const statusBar = document.getElementById('status-bar');
+            const colors = {
+                connected: 'bg-green-500',
+                disconnected: 'bg-red-500',
+                error: 'bg-red-600'
+            };
+            statusBar.className = `fixed top-0 left-0 right-0 px-4 py-2 text-center font-bold z-50 text-white ${colors[status]}`;
+            statusBar.textContent = text;
+        }
+
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'player_connected':
+                    onPlayerConnected(data);
+                    break;
+                case 'question_displayed':
+                    displayQuestion(data.question);
+                    break;
+                case 'answer_revealed':
+                    revealAnswer(data.answer);
+                    break;
+                case 'scores_updated':
+                    updateScores(data.scores);
+                    break;
+                case 'buzz_confirmed':
+                    showBuzzConfirmation();
+                    break;
+            }
+        }
+
+        // Join form submission
+        document.getElementById('join-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            episodeId = document.getElementById('episode-id').value;
+            teamName = document.getElementById('team-name').value;
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'join_as_player',
+                    episode_id: parseInt(episodeId),
+                    team_name: teamName
+                }));
+            } else {
+                showJoinError('Not connected to server. Please wait...');
+            }
+        });
+
+        function onPlayerConnected(data) {
+            document.getElementById('display-team-name').textContent = data.team_name;
+            document.getElementById('display-episode-id').textContent = data.episode_id;
+            document.getElementById('team-score').textContent = data.points;
+            
+            document.getElementById('join-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+        }
+
+        function displayQuestion(question) {
+            currentQuestionId = question.id;
+            
+            document.getElementById('waiting-state').classList.add('hidden');
+            document.getElementById('question-state').classList.remove('hidden');
+            document.getElementById('answer-section').classList.add('hidden');
+            document.getElementById('buzz-confirmation').classList.add('hidden');
+            
+            document.getElementById('q-theme').textContent = question.theme;
+            document.getElementById('q-points').textContent = question.points;
+            document.getElementById('q-text').textContent = question.question;
+            document.getElementById('answer-input').value = '';
+            document.getElementById('buzz-form').classList.remove('hidden');
+        }
+
+        function revealAnswer(answer) {
+            document.getElementById('q-answer').textContent = answer;
+            document.getElementById('answer-section').classList.remove('hidden');
+            document.getElementById('buzz-form').classList.add('hidden');
+        }
+
+        function updateScores(scores) {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerHTML = '';
+            
+            scores.forEach((team, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 rounded ' + 
+                    (team.team_name === teamName ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-50');
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-bold text-gray-600">${index + 1}.</span>
+                        <span class="font-bold text-gray-800">${team.team_name}</span>
+                        ${team.team_name === teamName ? '<span class="text-blue-600 text-sm">(You)</span>' : ''}
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+                `;
+                
+                scoreboard.appendChild(div);
+                
+                // Update own score
+                if (team.team_name === teamName) {
+                    document.getElementById('team-score').textContent = team.points;
+                }
+            });
+        }
+
+        // Buzz form submission
+        document.getElementById('buzz-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const answer = document.getElementById('answer-input').value;
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'buzz_answer',
+                    answer: answer
+                }));
+                
+                document.getElementById('buzz-button').classList.add('buzzing');
+                setTimeout(() => {
+                    document.getElementById('buzz-button').classList.remove('buzzing');
+                }, 300);
+            }
+        });
+
+        function showBuzzConfirmation() {
+            document.getElementById('buzz-confirmation').classList.remove('hidden');
+            document.getElementById('buzz-form').classList.add('hidden');
+        }
+
+        function showJoinError(message) {
+            document.getElementById('join-error-text').textContent = message;
+            document.getElementById('join-error').classList.remove('hidden');
+        }
+
+        // Initialize
+        connectWebSocket();
+    </script>
+</body>
+</html>
