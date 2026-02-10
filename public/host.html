@@ -199,9 +199,10 @@
 
         // Initialize WebSocket
         function connectWebSocket() {
-            const wsUrl = window.location.hostname.includes('render.com') 
-                ? 'wss://' + window.location.hostname.replace('quizbattle', 'quizbattle-ws') + ':8080'
-                : 'ws://localhost:8080';
+            const wsUrl = window.location.hostname.includes('render.com')
+        		? 'wss://quizbattle-ws.onrender.com'
+        		: 'ws://localhost:8080';
+
             
             ws = new WebSocket(wsUrl);
 
