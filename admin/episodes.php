@@ -1,4 +1,6 @@
 <?php
+require_once '../includes/bootstrap.php';  // ← ADD THIS
+session_start();
 require_once '../includes/config-render.php';
 require_once '../includes/auth.php';
 requireLogin();
@@ -49,7 +51,7 @@ $episodes = $stmt->fetchAll();
                             <?= ucfirst($episode['status']) ?>
                         </span>
                     </div>
-                    <a href="view_episode.php?id=<?= $episode['id'] ?>" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">
+                    <a href="get_episode.php?id=<?= $episode['id'] ?>" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">
                         View Details
                     </a>
                 </div>
