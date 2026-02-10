@@ -23,8 +23,8 @@
 <body class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 min-h-screen">
     
     <!-- Connection Status -->
-    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center font-bold z-50">
-        Connecting...
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-green-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connected (Polling Mode)
     </div>
 
     <!-- Join Screen -->
@@ -151,90 +151,51 @@
     </div>
 
     <script>
-        let ws = null;
+        // NOTE: This version uses HTTP polling instead of WebSocket
+        // WebSocket background workers aren't accessible from outside on Render free tier
+        
         let episodeId = null;
         let teamName = null;
+        let teamId = null;
+        let pollInterval = null;
         let currentQuestionId = null;
 
-        // Initialize WebSocket connection
-        function connectWebSocket() {
-            // Use Render's internal service name in production, or localhost for dev
-            const wsUrl = window.location.hostname.includes('render.com')
-        	? 'wss://quizbattle-ws.onrender.com'
-        	: 'ws://localhost:8080';
-
-            
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('Connected to server');
-                updateStatus('connected', 'Connected ✓');
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                console.log('Received:', data);
-                handleMessage(data);
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                updateStatus('error', 'Connection Error');
-            };
-
-            ws.onclose = () => {
-                console.log('Disconnected');
-                updateStatus('disconnected', 'Disconnected');
-                setTimeout(connectWebSocket, 3000); // Reconnect after 3s
-            };
-        }
-
-        function updateStatus(status, text) {
-            const statusBar = document.getElementById('status-bar');
-            const colors = {
-                connected: 'bg-green-500',
-                disconnected: 'bg-red-500',
-                error: 'bg-red-600'
-            };
-            statusBar.className = `fixed top-0 left-0 right-0 px-4 py-2 text-center font-bold z-50 text-white ${colors[status]}`;
-            statusBar.textContent = text;
-        }
-
-        function handleMessage(data) {
-            switch(data.type) {
-                case 'player_connected':
-                    onPlayerConnected(data);
-                    break;
-                case 'question_displayed':
-                    displayQuestion(data.question);
-                    break;
-                case 'answer_revealed':
-                    revealAnswer(data.answer);
-                    break;
-                case 'scores_updated':
-                    updateScores(data.scores);
-                    break;
-                case 'buzz_confirmed':
-                    showBuzzConfirmation();
-                    break;
-            }
-        }
-
         // Join form submission
-        document.getElementById('join-form').addEventListener('submit', (e) => {
+        document.getElementById('join-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             episodeId = document.getElementById('episode-id').value;
             teamName = document.getElementById('team-name').value;
 
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'join_as_player',
-                    episode_id: parseInt(episodeId),
-                    team_name: teamName
-                }));
-            } else {
-                showJoinError('Not connected to server. Please wait...');
+            // Register team (creates or finds existing team)
+            try {
+                const response = await fetch('/admin/api/join-episode.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: parseInt(episodeId),
+                        team_name: teamName
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    teamId = data.team_id;
+                    onPlayerConnected({
+                        team_name: teamName,
+                        episode_id: episodeId,
+                        points: data.points || 0
+                    });
+                    
+                    // Start polling for updates
+                    startPolling();
+                } else {
+                    showJoinError(data.error || 'Failed to join episode');
+                }
+            } catch (error) {
+                showJoinError('Connection error. Please try again.');
+                console.error(error);
             }
         });
 
@@ -245,6 +206,35 @@
             
             document.getElementById('join-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
+        }
+
+        function startPolling() {
+            // Poll every 2 seconds for updates
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/admin/api/poll-updates.php?episode_id=${episodeId}&team_id=${teamId}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Check for new question
+                        if (data.current_question && data.current_question.id !== currentQuestionId) {
+                            displayQuestion(data.current_question);
+                        }
+                        
+                        // Update scores
+                        if (data.scores) {
+                            updateScores(data.scores);
+                        }
+                        
+                        // Check if answer revealed
+                        if (data.answer_revealed && currentQuestionId) {
+                            revealAnswer(data.current_question.answer);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000);
         }
 
         function displayQuestion(question) {
@@ -296,21 +286,34 @@
         }
 
         // Buzz form submission
-        document.getElementById('buzz-form').addEventListener('submit', (e) => {
+        document.getElementById('buzz-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const answer = document.getElementById('answer-input').value;
             
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'buzz_answer',
-                    answer: answer
-                }));
+            try {
+                const response = await fetch('/admin/api/submit-answer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: teamId,
+                        question_id: currentQuestionId,
+                        answer: answer
+                    })
+                });
                 
-                document.getElementById('buzz-button').classList.add('buzzing');
-                setTimeout(() => {
-                    document.getElementById('buzz-button').classList.remove('buzzing');
-                }, 300);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showBuzzConfirmation();
+                    document.getElementById('buzz-button').classList.add('buzzing');
+                    setTimeout(() => {
+                        document.getElementById('buzz-button').classList.remove('buzzing');
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('Submit error:', error);
             }
         });
 
@@ -324,8 +327,12 @@
             document.getElementById('join-error').classList.remove('hidden');
         }
 
-        // Initialize
-        connectWebSocket();
+        // Stop polling when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        });
     </script>
 </body>
 </html>
