@@ -4,7 +4,7 @@
  * Returns episode information and teams
  */
 
-require_once '../../includes/config-render.php';
+require_once '../includes/config-render.php';
 
 header('Content-Type: application/json');
 
