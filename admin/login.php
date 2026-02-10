@@ -1,4 +1,5 @@
 <?php
+require_once '../includes/bootstrap.php';
 session_start();
 
 // If already logged in, redirect to dashboard
