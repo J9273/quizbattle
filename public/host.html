@@ -16,8 +16,8 @@
 <body class="bg-gray-100">
     
     <!-- Connection Status -->
-    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center font-bold z-50">
-        Connecting...
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-green-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connected (Polling Mode)
     </div>
 
     <!-- Join Screen -->
@@ -153,7 +153,7 @@
                 <div class="bg-white rounded-lg shadow-lg p-6 sticky top-20">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xl font-bold text-gray-800">🏆 Scoreboard</h3>
-                        <button onclick="requestScores()" 
+                        <button onclick="refreshScores()" 
                                 class="text-sm text-blue-600 hover:underline">
                             Refresh
                         </button>
@@ -191,88 +191,41 @@
     </div>
 
     <script>
-        let ws = null;
+        // NOTE: This version uses HTTP polling instead of WebSocket
+        
         let episodeId = null;
         let currentQuestion = null;
+        let currentQuestionId = null;
         let questions = [];
         let buzzesReceived = [];
-
-        // Initialize WebSocket
-        function connectWebSocket() {
-            const wsUrl = window.location.hostname.includes('render.com')
-        		? 'wss://quizbattle-ws.onrender.com'
-        		: 'ws://localhost:8080';
-
-            
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('Connected to server');
-                updateStatus('connected', 'Connected ✓');
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                console.log('Received:', data);
-                handleMessage(data);
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                updateStatus('error', 'Connection Error');
-            };
-
-            ws.onclose = () => {
-                updateStatus('disconnected', 'Disconnected');
-                setTimeout(connectWebSocket, 3000);
-            };
-        }
-
-        function updateStatus(status, text) {
-            const statusBar = document.getElementById('status-bar');
-            const colors = {
-                connected: 'bg-green-500',
-                disconnected: 'bg-red-500',
-                error: 'bg-red-600'
-            };
-            statusBar.className = `fixed top-0 left-0 right-0 px-4 py-2 text-center font-bold z-50 text-white ${colors[status]}`;
-            statusBar.textContent = text;
-        }
-
-        function handleMessage(data) {
-            switch(data.type) {
-                case 'host_connected':
-                    onHostConnected(data);
-                    break;
-                case 'player_joined':
-                    onPlayerJoined(data);
-                    break;
-                case 'player_left':
-                    onPlayerLeft(data);
-                    break;
-                case 'buzz_received':
-                    onBuzzReceived(data);
-                    break;
-                case 'scores_updated':
-                    updateScoreboard(data.scores);
-                    break;
-                case 'question_displayed':
-                    onQuestionDisplayed(data.question);
-                    break;
-            }
-        }
+        let pollInterval = null;
 
         // Join form
-        document.getElementById('join-form').addEventListener('submit', (e) => {
+        document.getElementById('join-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             episodeId = document.getElementById('episode-id').value;
 
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'join_as_host',
-                    episode_id: parseInt(episodeId)
-                }));
+            // Verify episode exists
+            try {
+                const response = await fetch(`/admin/api/get-episode.php?id=${episodeId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    onHostConnected({
+                        episode_id: episodeId,
+                        player_count: data.teams.length,
+                        scores: data.teams
+                    });
+                    
+                    // Start polling
+                    startPolling();
+                } else {
+                    alert('Episode not found');
+                }
+            } catch (error) {
+                alert('Error connecting to episode');
+                console.error(error);
             }
         });
 
@@ -287,13 +240,12 @@
             loadQuestions();
         }
 
-        function onPlayerJoined(data) {
-            document.getElementById('player-count').textContent = data.player_count;
-            showNotification(`${data.team_name} joined!`, 'info');
-        }
-
-        function onPlayerLeft(data) {
-            document.getElementById('player-count').textContent = data.player_count;
+        function startPolling() {
+            // Poll every 2 seconds for updates
+            pollInterval = setInterval(async () => {
+                await refreshScores();
+                await refreshBuzzes();
+            }, 2000);
         }
 
         async function loadQuestions() {
@@ -337,7 +289,7 @@
             document.getElementById('question-preview').classList.remove('hidden');
         }
 
-        function displayQuestion() {
+        async function displayQuestion() {
             const select = document.getElementById('question-select');
             const option = select.options[select.selectedIndex];
             
@@ -347,20 +299,40 @@
             }
             
             const questionId = parseInt(option.value);
+            const question = JSON.parse(option.dataset.question);
             
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'display_question',
-                    question_id: questionId
-                }));
+            try {
+                const response = await fetch('/admin/api/set-current-question.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        question_id: questionId,
+                        action: 'display'
+                    })
+                });
                 
-                buzzesReceived = [];
-                updateBuzzesList();
+                const data = await response.json();
+                
+                if (data.success) {
+                    onQuestionDisplayed(question);
+                    buzzesReceived = [];
+                    updateBuzzesList();
+                    
+                    // Immediately check for buzzes
+                    await refreshBuzzes();
+                } else {
+                    alert('Error displaying question: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error displaying question');
             }
         }
 
         function onQuestionDisplayed(question) {
             currentQuestion = question;
+            currentQuestionId = question.id;
             
             document.getElementById('no-question').classList.add('hidden');
             document.getElementById('current-question').classList.remove('hidden');
@@ -373,27 +345,54 @@
             document.getElementById('current-answer').textContent = question.answer;
         }
 
-        function revealAnswer() {
+        async function revealAnswer() {
             if (!currentQuestion) {
                 alert('No question is currently displayed');
                 return;
             }
             
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'reveal_answer',
-                    answer: currentQuestion.answer
-                }));
+            try {
+                const response = await fetch('/admin/api/set-current-question.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        action: 'reveal'
+                    })
+                });
                 
-                document.getElementById('current-answer-display').classList.remove('hidden');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('current-answer-display').classList.remove('hidden');
+                } else {
+                    alert('Error revealing answer');
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
         }
 
-        function onBuzzReceived(data) {
-            buzzesReceived.push(data);
-            updateBuzzesList();
+        async function refreshBuzzes() {
+            if (!currentQuestionId) return;
             
-            showNotification(`${data.team_name} buzzed in!`, 'buzz');
+            try {
+                const response = await fetch(`/admin/api/get-buzzes.php?episode_id=${episodeId}&question_id=${currentQuestionId}`);
+                const data = await response.json();
+                
+                if (data.success && data.buzzes) {
+                    // Check for new buzzes
+                    const existingIds = new Set(buzzesReceived.map(b => b.id));
+                    const newBuzzes = data.buzzes.filter(b => !existingIds.has(b.id));
+                    
+                    if (newBuzzes.length > 0) {
+                        buzzesReceived = data.buzzes;
+                        updateBuzzesList();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching buzzes:', error);
+            }
         }
 
         function updateBuzzesList() {
@@ -408,11 +407,13 @@
             list.innerHTML = '';
             buzzesReceived.forEach((buzz, index) => {
                 const div = document.createElement('div');
-                div.className = 'bg-red-50 border-l-4 border-red-500 p-4 rounded new-buzz';
+                div.className = 'bg-red-50 border-l-4 border-red-500 p-4 rounded';
+                if (index === 0) div.classList.add('new-buzz');
+                
                 div.innerHTML = `
                     <div class="flex items-center justify-between mb-2">
                         <span class="font-bold text-gray-800">${buzz.team_name}</span>
-                        <span class="text-xs text-gray-600">#${index + 1}</span>
+                        <span class="text-xs text-gray-600">#${index + 1} • ${new Date(buzz.buzzed_at).toLocaleTimeString()}</span>
                     </div>
                     <p class="text-lg font-bold text-gray-900">${buzz.answer}</p>
                     <button onclick="quickAward(${buzz.team_id})" 
@@ -424,19 +425,32 @@
             });
         }
 
-        function quickAward(teamId) {
+        async function quickAward(teamId) {
             if (!currentQuestion) return;
             
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'award_points',
-                    team_id: teamId,
-                    points: currentQuestion.points
-                }));
+            try {
+                const response = await fetch('/admin/api/update-score.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: teamId,
+                        points: currentQuestion.points,
+                        action: 'add'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await refreshScores();
+                }
+            } catch (error) {
+                console.error('Error awarding points:', error);
             }
         }
 
-        function awardPoints() {
+        async function awardPoints() {
             const teamId = document.getElementById('award-team').value;
             const points = document.getElementById('award-points').value;
             
@@ -445,14 +459,40 @@
                 return;
             }
             
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'award_points',
-                    team_id: parseInt(teamId),
-                    points: parseInt(points)
-                }));
+            try {
+                const response = await fetch('/admin/api/update-score.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: parseInt(teamId),
+                        points: parseInt(points),
+                        action: 'add'
+                    })
+                });
                 
-                document.getElementById('award-points').value = '';
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('award-points').value = '';
+                    await refreshScores();
+                }
+            } catch (error) {
+                console.error('Error awarding points:', error);
+            }
+        }
+
+        async function refreshScores() {
+            try {
+                const response = await fetch(`/admin/api/get-episode.php?id=${episodeId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateScoreboard(data.teams);
+                    document.getElementById('player-count').textContent = data.teams.length;
+                }
+            } catch (error) {
+                console.error('Error refreshing scores:', error);
             }
         }
 
@@ -462,6 +502,9 @@
             
             scoreboard.innerHTML = '';
             awardTeam.innerHTML = '<option value="">-- Select team --</option>';
+            
+            // Sort by points
+            scores.sort((a, b) => b.points - a.points);
             
             scores.forEach((team, index) => {
                 // Scoreboard
@@ -484,19 +527,12 @@
             });
         }
 
-        function requestScores() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'get_scores' }));
+        // Stop polling when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
             }
-        }
-
-        function showNotification(message, type) {
-            // Simple notification - you can enhance this
-            console.log(`[${type.toUpperCase()}] ${message}`);
-        }
-
-        // Initialize
-        connectWebSocket();
+        });
     </script>
 </body>
 </html>
