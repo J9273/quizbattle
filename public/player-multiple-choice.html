@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle - Player (Multiple Choice)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .correct-answer {
+            animation: correctPulse 0.5s ease-in-out 3;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .wrong-answer {
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 min-h-screen">
+    
+    <!-- Connection Status -->
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-green-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connected ✓
+    </div>
+
+    <!-- Join Screen -->
+    <div id="join-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">✓ Quiz Battle</h1>
+            <p class="text-center text-gray-600 mb-2">Multiple Choice</p>
+            <p class="text-center text-sm text-gray-500 mb-8">Join an Episode</p>
+
+            <form id="join-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Episode ID</label>
+                    <input type="number" 
+                           id="episode-id" 
+                           required
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter episode ID">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Team Name</label>
+                    <input type="text" 
+                           id="team-name" 
+                           required
+                           maxlength="50"
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter your team name">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-all transform hover:scale-105">
+                    Join Game
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden min-h-screen flex flex-col p-4 pt-16">
+        
+        <!-- Team Info Header -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800" id="display-team-name">Team Name</h2>
+                    <p class="text-gray-600">Episode: <span id="display-episode-id">0</span> • Multiple Choice</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-4xl font-bold text-blue-600" id="team-score">0</div>
+                    <div class="text-sm text-gray-600">points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Question -->
+        <div id="question-display" class="flex-1 flex items-center justify-center mb-4">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full">
+                
+                <!-- Waiting State -->
+                <div id="waiting-state" class="text-center">
+                    <div class="text-6xl mb-4">⏳</div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-2">Waiting for Question...</h3>
+                    <p class="text-gray-600">The host will display the next question soon</p>
+                </div>
+
+                <!-- Question State -->
+                <div id="question-state" class="hidden">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-6">
+                        <span id="q-theme" class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold"></span>
+                        <span id="q-level" class="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold"></span>
+                        <span id="q-points" class="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold"></span>
+                    </div>
+
+                    <!-- Question Text -->
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-8" id="q-text">
+                        Question text will appear here
+                    </h2>
+
+                    <!-- Multiple Choice Options -->
+                    <div id="mc-options" class="space-y-3 mb-6">
+                        <label class="choice-option flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                            <input type="radio" name="answer" value="A" class="w-6 h-6 text-blue-600">
+                            <span class="ml-4 text-lg font-medium text-gray-800 flex-1">
+                                <span class="font-bold mr-3">A</span>
+                                <span id="choice-a-text"></span>
+                            </span>
+                        </label>
+
+                        <label class="choice-option flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                            <input type="radio" name="answer" value="B" class="w-6 h-6 text-blue-600">
+                            <span class="ml-4 text-lg font-medium text-gray-800 flex-1">
+                                <span class="font-bold mr-3">B</span>
+                                <span id="choice-b-text"></span>
+                            </span>
+                        </label>
+
+                        <label class="choice-option flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                            <input type="radio" name="answer" value="C" class="w-6 h-6 text-blue-600">
+                            <span class="ml-4 text-lg font-medium text-gray-800 flex-1">
+                                <span class="font-bold mr-3">C</span>
+                                <span id="choice-c-text"></span>
+                            </span>
+                        </label>
+
+                        <label id="choice-d-container" class="choice-option flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all hidden">
+                            <input type="radio" name="answer" value="D" class="w-6 h-6 text-blue-600">
+                            <span class="ml-4 text-lg font-medium text-gray-800 flex-1">
+                                <span class="font-bold mr-3">D</span>
+                                <span id="choice-d-text"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="submit-btn" 
+                            onclick="submitAnswer()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-all transform hover:scale-105">
+                        Submit Answer
+                    </button>
+
+                    <!-- Submitted State -->
+                    <div id="submitted-state" class="hidden text-center py-4">
+                        <div class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded">
+                            <p class="text-blue-800 font-bold">✓ Answer submitted!</p>
+                            <p class="text-blue-700 text-sm mt-1">You selected: <span id="selected-answer" class="font-bold"></span></p>
+                            <p class="text-blue-600 text-sm">Waiting for host to reveal answer...</p>
+                        </div>
+                    </div>
+
+                    <!-- Result State -->
+                    <div id="result-state" class="hidden mt-6">
+                        <div id="correct-result" class="hidden bg-green-100 border-l-4 border-green-500 p-6 rounded">
+                            <div class="flex items-center gap-3">
+                                <div class="text-4xl">🎉</div>
+                                <div>
+                                    <p class="text-green-800 font-bold text-xl">Correct!</p>
+                                    <p class="text-green-700">You earned <span id="points-earned" class="font-bold"></span> points!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="wrong-result" class="hidden bg-red-100 border-l-4 border-red-500 p-6 rounded">
+                            <div class="flex items-center gap-3">
+                                <div class="text-4xl">❌</div>
+                                <div>
+                                    <p class="text-red-800 font-bold text-xl">Incorrect</p>
+                                    <p class="text-red-700">The correct answer was: <span id="correct-answer-text" class="font-bold"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="no-answer-result" class="hidden bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded">
+                            <div class="flex items-center gap-3">
+                                <div class="text-4xl">⏰</div>
+                                <div>
+                                    <p class="text-yellow-800 font-bold text-xl">No Answer Submitted</p>
+                                    <p class="text-yellow-700">The correct answer was: <span id="timeout-correct-answer" class="font-bold"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="bg-white rounded-lg shadow-lg p-4">
+            <h3 class="text-xl font-bold text-gray-800 mb-3">🏆 Scoreboard</h3>
+            <div id="scoreboard" class="space-y-2">
+                <!-- Scores will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let episodeId = null;
+        let teamName = null;
+        let teamId = null;
+        let currentQuestionId = null;
+        let pollInterval = null;
+        let hasAnswered = false;
+
+        // Join form
+        document.getElementById('join-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            episodeId = document.getElementById('episode-id').value;
+            teamName = document.getElementById('team-name').value;
+
+            try {
+                const response = await fetch('/admin/api/join-episode.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: parseInt(episodeId),
+                        team_name: teamName
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    teamId = data.team_id;
+                    onPlayerConnected({
+                        team_name: teamName,
+                        episode_id: episodeId,
+                        points: data.points || 0
+                    });
+                    startPolling();
+                } else {
+                    alert(data.error || 'Failed to join episode');
+                }
+            } catch (error) {
+                alert('Connection error. Please try again.');
+                console.error(error);
+            }
+        });
+
+        function onPlayerConnected(data) {
+            document.getElementById('display-team-name').textContent = data.team_name;
+            document.getElementById('display-episode-id').textContent = data.episode_id;
+            document.getElementById('team-score').textContent = data.points;
+            
+            document.getElementById('join-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+        }
+
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/admin/api/poll-updates.php?episode_id=${episodeId}&team_id=${teamId}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Check for new question
+                        if (data.current_question && data.current_question.id !== currentQuestionId) {
+                            displayQuestion(data.current_question);
+                        }
+                        
+                        // Update scores
+                        if (data.scores) {
+                            updateScores(data.scores);
+                        }
+                        
+                        // Check if answer revealed
+                        if (data.answer_revealed && currentQuestionId && hasAnswered) {
+                            showResult(data.current_question);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000);
+        }
+
+        function displayQuestion(question) {
+            currentQuestionId = question.id;
+            hasAnswered = false;
+            
+            // Hide waiting, show question
+            document.getElementById('waiting-state').classList.add('hidden');
+            document.getElementById('question-state').classList.remove('hidden');
+            document.getElementById('result-state').classList.add('hidden');
+            document.getElementById('submitted-state').classList.add('hidden');
+            document.getElementById('submit-btn').classList.remove('hidden');
+            
+            // Set question details
+            document.getElementById('q-theme').textContent = question.theme;
+            document.getElementById('q-level').textContent = question.level.toUpperCase();
+            document.getElementById('q-points').textContent = question.points + ' points';
+            document.getElementById('q-text').textContent = question.question;
+            
+            // Set choices
+            document.getElementById('choice-a-text').textContent = question.choices.A;
+            document.getElementById('choice-b-text').textContent = question.choices.B;
+            document.getElementById('choice-c-text').textContent = question.choices.C;
+            
+            if (question.choices.D) {
+                document.getElementById('choice-d-text').textContent = question.choices.D;
+                document.getElementById('choice-d-container').classList.remove('hidden');
+            } else {
+                document.getElementById('choice-d-container').classList.add('hidden');
+            }
+            
+            // Reset selections
+            document.querySelectorAll('input[name="answer"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Reset choice styling
+            document.querySelectorAll('.choice-option').forEach(label => {
+                label.classList.remove('border-green-500', 'bg-green-100', 'border-red-500', 'bg-red-100');
+                label.classList.add('border-gray-300');
+            });
+        }
+
+        async function submitAnswer() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const selectedChoice = selected.value;
+            
+            try {
+                const response = await fetch('/admin/api/submit-mc-answer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: teamId,
+                        question_id: currentQuestionId,
+                        selected_choice: selectedChoice
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    hasAnswered = true;
+                    document.getElementById('selected-answer').textContent = selectedChoice;
+                    document.getElementById('submit-btn').classList.add('hidden');
+                    document.getElementById('submitted-state').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Submit error:', error);
+                alert('Error submitting answer');
+            }
+        }
+
+        function showResult(question) {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            const selectedChoice = selected ? selected.value : null;
+            const correctChoice = question.correct_choice;
+            
+            document.getElementById('result-state').classList.remove('hidden');
+            
+            if (selectedChoice === correctChoice) {
+                // Correct!
+                document.getElementById('correct-result').classList.remove('hidden');
+                document.getElementById('wrong-result').classList.add('hidden');
+                document.getElementById('no-answer-result').classList.add('hidden');
+                document.getElementById('points-earned').textContent = question.points;
+                
+                // Highlight correct choice
+                const correctLabel = document.querySelector(`input[value="${correctChoice}"]`).closest('label');
+                correctLabel.classList.add('border-green-500', 'bg-green-100', 'correct-answer');
+                correctLabel.classList.remove('border-gray-300');
+                
+            } else if (selectedChoice) {
+                // Wrong
+                document.getElementById('correct-result').classList.add('hidden');
+                document.getElementById('wrong-result').classList.remove('hidden');
+                document.getElementById('no-answer-result').classList.add('hidden');
+                document.getElementById('correct-answer-text').textContent = `${correctChoice} - ${question.choices[correctChoice]}`;
+                
+                // Highlight wrong choice
+                const wrongLabel = document.querySelector(`input[value="${selectedChoice}"]`).closest('label');
+                wrongLabel.classList.add('border-red-500', 'bg-red-100', 'wrong-answer');
+                wrongLabel.classList.remove('border-gray-300');
+                
+                // Show correct choice
+                const correctLabel = document.querySelector(`input[value="${correctChoice}"]`).closest('label');
+                correctLabel.classList.add('border-green-500', 'bg-green-100');
+                correctLabel.classList.remove('border-gray-300');
+                
+            } else {
+                // No answer
+                document.getElementById('correct-result').classList.add('hidden');
+                document.getElementById('wrong-result').classList.add('hidden');
+                document.getElementById('no-answer-result').classList.remove('hidden');
+                document.getElementById('timeout-correct-answer').textContent = `${correctChoice} - ${question.choices[correctChoice]}`;
+                
+                // Show correct choice
+                const correctLabel = document.querySelector(`input[value="${correctChoice}"]`).closest('label');
+                correctLabel.classList.add('border-green-500', 'bg-green-100');
+                correctLabel.classList.remove('border-gray-300');
+            }
+        }
+
+        function updateScores(scores) {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerHTML = '';
+            
+            scores.sort((a, b) => b.points - a.points);
+            
+            scores.forEach((team, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 rounded ' + 
+                    (team.team_name === teamName ? 'bg-blue-100 border-2 border-blue-500' : 'bg-gray-50');
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-bold text-gray-600">${index + 1}.</span>
+                        <span class="font-bold text-gray-800">${team.team_name}</span>
+                        ${team.team_name === teamName ? '<span class="text-blue-600 text-sm">(You)</span>' : ''}
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+                `;
+                
+                scoreboard.appendChild(div);
+                
+                if (team.team_name === teamName) {
+                    document.getElementById('team-score').textContent = team.points;
+                }
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        });
+    </script>
+</body>
+</html>

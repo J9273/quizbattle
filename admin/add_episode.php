@@ -12,6 +12,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $episode_name = $_POST['episode_name'] ?? '';
     $episode_date = $_POST['episode_date'] ?? '';
+    $quiz_format = $_POST['quiz_format'] ?? 'cutthroat';
     $number_of_teams = (int)($_POST['number_of_teams'] ?? 0);
     $team_names = $_POST['team_names'] ?? [];
     $status = $_POST['status'] ?? 'active';
@@ -21,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Episode name is required";
     } elseif (empty($episode_date)) {
         $error = "Episode date is required";
+    } elseif (!in_array($quiz_format, ['cutthroat', 'multiple_choice'])) {
+        $error = "Invalid quiz format";
     } elseif ($number_of_teams < 2) {
         $error = "At least 2 teams are required";
     } elseif (count(array_filter($team_names)) < $number_of_teams) {
@@ -32,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Insert episode
             $stmt = $conn->prepare("
-                INSERT INTO quiz_episodes (episode_name, episode_date, number_of_teams, status) 
-                VALUES (?, ?, ?, ?) 
+                INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, number_of_teams, status) 
+                VALUES (?, ?, ?, ?, ?) 
                 RETURNING id
             ");
-            $stmt->execute([$episode_name, $episode_date, $number_of_teams, $status]);
+            $stmt->execute([$episode_name, $episode_date, $quiz_format, $number_of_teams, $status]);
             $episode = $stmt->fetch();
             $episode_id = $episode['id'];
             
@@ -58,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Commit transaction
             $conn->commit();
             
-            $success = "Episode '{$episode_name}' created successfully with {$number_of_teams} teams!";
+            $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
+            $success = "Episode '{$episode_name}' created successfully as {$format_label} format with {$number_of_teams} teams!";
             
             // Clear form
             $_POST = [];
@@ -143,7 +147,6 @@ $default_date = date('Y-m-d');
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                            placeholder="e.g., Season 1 Episode 5, Friday Night Quiz, Team Tournament"
                            value="<?= htmlspecialchars($_POST['episode_name'] ?? '') ?>">
-                    <p class="text-xs text-gray-500 mt-1">Give your episode a memorable name</p>
                 </div>
 
                 <!-- Episode Date -->
@@ -158,6 +161,54 @@ $default_date = date('Y-m-d');
                            value="<?= htmlspecialchars($_POST['episode_date'] ?? $default_date) ?>">
                 </div>
 
+                <!-- Quiz Format Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        Quiz Format <span class="text-red-500">*</span>
+                    </label>
+                    <p class="text-sm text-gray-600 mb-4">Choose how players will answer questions</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- CutThroat -->
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="quiz_format" value="cutthroat" 
+                                   <?= ($_POST['quiz_format'] ?? 'cutthroat') === 'cutthroat' ? 'checked' : '' ?>
+                                   class="sr-only peer">
+                            <div class="border-2 border-gray-300 rounded-lg p-6 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:border-blue-300">
+                                <div class="text-center">
+                                    <div class="text-5xl mb-3">🎯</div>
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">CutThroat</h3>
+                                    <div class="space-y-2 text-sm text-gray-600">
+                                        <p>• Players buzz in with text answers</p>
+                                        <p>• First correct answer wins</p>
+                                        <p>• Fast-paced and competitive</p>
+                                        <p>• Perfect for trivia experts</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Multiple Choice -->
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="quiz_format" value="multiple_choice"
+                                   <?= ($_POST['quiz_format'] ?? '') === 'multiple_choice' ? 'checked' : '' ?>
+                                   class="sr-only peer">
+                            <div class="border-2 border-gray-300 rounded-lg p-6 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:border-blue-300">
+                                <div class="text-center">
+                                    <div class="text-5xl mb-3">✓</div>
+                                    <h3 class="text-xl font-bold text-gray-800 mb-2">Multiple Choice</h3>
+                                    <div class="space-y-2 text-sm text-gray-600">
+                                        <p>• Players select A, B, C, or D</p>
+                                        <p>• Everyone can answer</p>
+                                        <p>• All correct answers get points</p>
+                                        <p>• Family-friendly and inclusive</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Status -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -170,7 +221,6 @@ $default_date = date('Y-m-d');
                         <option value="completed" <?= ($_POST['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Completed</option>
                         <option value="archived" <?= ($_POST['status'] ?? '') === 'archived' ? 'selected' : '' ?>>Archived</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">Active episodes can be played, completed are finished, archived are hidden</p>
                 </div>
 
                 <!-- Number of Teams -->
@@ -188,7 +238,6 @@ $default_date = date('Y-m-d');
                            placeholder="e.g., 4"
                            value="<?= htmlspecialchars($_POST['number_of_teams'] ?? '4') ?>"
                            onchange="generateTeamFields()">
-                    <p class="text-xs text-gray-500 mt-1">Minimum 2 teams, maximum 20 teams</p>
                 </div>
 
                 <!-- Team Names (Dynamic) -->
@@ -240,18 +289,6 @@ $default_date = date('Y-m-d');
                     </a>
                 </div>
             </form>
-        </div>
-
-        <!-- Info Box -->
-        <div class="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded">
-            <h3 class="font-bold text-blue-800 mb-2">💡 Tips for Creating Episodes</h3>
-            <ul class="text-sm text-blue-700 space-y-1">
-                <li>• Use descriptive episode names to easily identify them later</li>
-                <li>• Team names can be changed later if needed</li>
-                <li>• Set status to "Active" to make the episode available for play</li>
-                <li>• You can add more teams later by editing the episode</li>
-                <li>• The Episode ID will be used by players to join the game</li>
-            </ul>
         </div>
     </div>
 

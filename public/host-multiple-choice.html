@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Battle - Host (Multiple Choice)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    
+    <!-- Connection Status -->
+    <div id="status-bar" class="fixed top-0 left-0 right-0 bg-green-500 text-white px-4 py-2 text-center font-bold z-50">
+        Connected ✓
+    </div>
+
+    <!-- Join Screen -->
+    <div id="join-screen" class="min-h-screen flex items-center justify-center p-4 pt-16">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">✓ Quiz Battle</h1>
+            <p class="text-center text-gray-600 mb-8">Host Control Panel - Multiple Choice</p>
+
+            <form id="join-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Episode ID</label>
+                    <input type="number" 
+                           id="episode-id" 
+                           required
+                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                           placeholder="Enter episode ID">
+                    <p class="text-xs text-gray-500 mt-1">Get this from your admin panel</p>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-all">
+                    Start Hosting
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Host Screen -->
+    <div id="host-screen" class="hidden min-h-screen p-4 pt-16">
+        
+        <!-- Top Bar -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Host Control Panel - Multiple Choice</h2>
+                    <p class="text-gray-600">Episode: <span id="display-episode-id">0</span></p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="player-count">0</div>
+                        <div class="text-xs text-gray-600">Teams</div>
+                    </div>
+                    <button onclick="loadQuestions()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        Refresh Questions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            
+            <!-- Left: Question Control -->
+            <div class="lg:col-span-2 space-y-4">
+                
+                <!-- Question Selector -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Select Question</h3>
+                    
+                    <select id="question-select" 
+                            class="w-full p-3 border-2 border-gray-300 rounded-lg mb-4"
+                            onchange="previewQuestion()">
+                        <option value="">-- Select a question --</option>
+                    </select>
+
+                    <!-- Question Preview -->
+                    <div id="question-preview" class="hidden bg-gray-50 p-4 rounded-lg mb-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span id="preview-theme" class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                            <span id="preview-level" class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                            <span id="preview-points" class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold"></span>
+                        </div>
+                        <p id="preview-question" class="text-lg font-medium text-gray-800 mb-3"></p>
+                        
+                        <div class="space-y-2 mb-3">
+                            <div class="flex items-center gap-2" id="preview-choice-a">
+                                <span class="font-bold text-gray-700">A:</span>
+                                <span class="text-gray-800"></span>
+                            </div>
+                            <div class="flex items-center gap-2" id="preview-choice-b">
+                                <span class="font-bold text-gray-700">B:</span>
+                                <span class="text-gray-800"></span>
+                            </div>
+                            <div class="flex items-center gap-2" id="preview-choice-c">
+                                <span class="font-bold text-gray-700">C:</span>
+                                <span class="text-gray-800"></span>
+                            </div>
+                            <div class="flex items-center gap-2 hidden" id="preview-choice-d">
+                                <span class="font-bold text-gray-700">D:</span>
+                                <span class="text-gray-800"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-100 border-l-4 border-green-500 p-3 rounded">
+                            <p class="text-xs font-bold text-green-800">CORRECT ANSWER:</p>
+                            <p class="text-lg font-bold text-green-900" id="preview-correct"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="displayQuestion()" 
+                                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg">
+                            📺 Display Question
+                        </button>
+                        <button onclick="revealAnswer()" 
+                                class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg">
+                            👁️ Reveal Answer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Currently Displayed -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Currently Displayed</h3>
+                    
+                    <div id="no-question" class="text-center py-8 text-gray-400">
+                        <p class="text-lg">No question displayed yet</p>
+                    </div>
+
+                    <div id="current-question" class="hidden">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-4">
+                            <p class="text-sm text-blue-700 mb-2">
+                                <span id="current-theme" class="font-bold"></span> • 
+                                <span id="current-level" class="font-bold"></span> • 
+                                <span id="current-points" class="font-bold"></span> points
+                            </p>
+                            <p id="current-text" class="text-xl font-bold text-gray-800 mb-3"></p>
+                            
+                            <div class="space-y-1 text-gray-700">
+                                <div id="current-choice-a"></div>
+                                <div id="current-choice-b"></div>
+                                <div id="current-choice-c"></div>
+                                <div id="current-choice-d" class="hidden"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="current-answer-display" class="hidden bg-green-100 border-l-4 border-green-500 p-4 rounded">
+                            <p class="text-sm font-bold text-green-800">ANSWER REVEALED:</p>
+                            <p id="current-answer" class="text-2xl font-bold text-green-900"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answer Statistics -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">
+                        📊 Answer Breakdown
+                        <span id="answer-count" class="text-sm text-gray-600">(0 responses)</span>
+                    </h3>
+                    
+                    <div id="answer-stats" class="space-y-3">
+                        <p class="text-gray-400 text-center py-4">No responses yet</p>
+                    </div>
+
+                    <div id="correct-teams" class="hidden mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="font-bold text-green-800 mb-2">✅ Correct Answers (Auto-awarded)</h4>
+                        <div id="correct-teams-list" class="space-y-1 text-sm text-green-700">
+                            <!-- Correct teams will be listed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Scoreboard & Actions -->
+            <div class="space-y-4">
+                
+                <!-- Scoreboard -->
+                <div class="bg-white rounded-lg shadow-lg p-6 sticky top-20">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">🏆 Scoreboard</h3>
+                        <button onclick="refreshScores()" 
+                                class="text-sm text-blue-600 hover:underline">
+                            Refresh
+                        </button>
+                    </div>
+                    
+                    <div id="scoreboard" class="space-y-2">
+                        <!-- Scores will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Manual Point Adjustment -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Manual Points</h3>
+                    
+                    <div class="space-y-3">
+                        <select id="award-team" class="w-full p-2 border rounded">
+                            <option value="">-- Select team --</option>
+                        </select>
+                        
+                        <input type="number" 
+                               id="award-points" 
+                               class="w-full p-2 border rounded" 
+                               placeholder="Points"
+                               min="1">
+                        
+                        <button onclick="awardPoints()" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">
+                            Award Points
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let episodeId = null;
+        let currentQuestion = null;
+        let currentQuestionId = null;
+        let questions = [];
+        let pollInterval = null;
+        let answerRevealed = false;
+
+        // Join form
+        document.getElementById('join-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            episodeId = document.getElementById('episode-id').value;
+
+            try {
+                const response = await fetch(`/admin/api/get-episode.php?id=${episodeId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    onHostConnected({
+                        episode_id: episodeId,
+                        player_count: data.teams.length,
+                        scores: data.teams
+                    });
+                    startPolling();
+                } else {
+                    alert('Episode not found');
+                }
+            } catch (error) {
+                alert('Error connecting to episode');
+                console.error(error);
+            }
+        });
+
+        function onHostConnected(data) {
+            document.getElementById('display-episode-id').textContent = data.episode_id;
+            document.getElementById('player-count').textContent = data.player_count;
+            
+            document.getElementById('join-screen').classList.add('hidden');
+            document.getElementById('host-screen').classList.remove('hidden');
+            
+            updateScoreboard(data.scores);
+            loadQuestions();
+        }
+
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                await refreshScores();
+                if (currentQuestionId && !answerRevealed) {
+                    await refreshAnswerStats();
+                }
+            }, 2000);
+        }
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/admin/api/get_questions.php');
+                const data = await response.json();
+                questions = (data.questions || []).filter(q => 
+                    q.question_format === 'multiple_choice' || q.question_format === 'both'
+                );
+                
+                const select = document.getElementById('question-select');
+                select.innerHTML = '<option value="">-- Select a question --</option>';
+                
+                questions.forEach(q => {
+                    const option = document.createElement('option');
+                    option.value = q.id;
+                    option.textContent = `[${q.level.toUpperCase()}] ${q.theme}: ${q.question.substring(0, 60)}...`;
+                    option.dataset.question = JSON.stringify(q);
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load questions:', error);
+            }
+        }
+
+        function previewQuestion() {
+            const select = document.getElementById('question-select');
+            const option = select.options[select.selectedIndex];
+            
+            if (!option.value) {
+                document.getElementById('question-preview').classList.add('hidden');
+                return;
+            }
+            
+            const question = JSON.parse(option.dataset.question);
+            
+            document.getElementById('preview-theme').textContent = question.theme;
+            document.getElementById('preview-level').textContent = question.level.toUpperCase();
+            document.getElementById('preview-points').textContent = question.points + ' pts';
+            document.getElementById('preview-question').textContent = question.question;
+            
+            document.getElementById('preview-choice-a').querySelector('span:last-child').textContent = question.choice_a;
+            document.getElementById('preview-choice-b').querySelector('span:last-child').textContent = question.choice_b;
+            document.getElementById('preview-choice-c').querySelector('span:last-child').textContent = question.choice_c;
+            
+            if (question.choice_d) {
+                document.getElementById('preview-choice-d').querySelector('span:last-child').textContent = question.choice_d;
+                document.getElementById('preview-choice-d').classList.remove('hidden');
+            } else {
+                document.getElementById('preview-choice-d').classList.add('hidden');
+            }
+            
+            document.getElementById('preview-correct').textContent = `${question.correct_choice} - ${question['choice_' + question.correct_choice.toLowerCase()]}`;
+            
+            document.getElementById('question-preview').classList.remove('hidden');
+        }
+
+        async function displayQuestion() {
+            const select = document.getElementById('question-select');
+            const option = select.options[select.selectedIndex];
+            
+            if (!option.value) {
+                alert('Please select a question first');
+                return;
+            }
+            
+            const questionId = parseInt(option.value);
+            const question = JSON.parse(option.dataset.question);
+            
+            try {
+                const response = await fetch('/admin/api/set-current-question.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        question_id: questionId,
+                        action: 'display'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    onQuestionDisplayed(question);
+                    answerRevealed = false;
+                    await refreshAnswerStats();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function onQuestionDisplayed(question) {
+            currentQuestion = question;
+            currentQuestionId = question.id;
+            
+            document.getElementById('no-question').classList.add('hidden');
+            document.getElementById('current-question').classList.remove('hidden');
+            document.getElementById('current-answer-display').classList.add('hidden');
+            
+            document.getElementById('current-theme').textContent = question.theme;
+            document.getElementById('current-level').textContent = question.level.toUpperCase();
+            document.getElementById('current-points').textContent = question.points;
+            document.getElementById('current-text').textContent = question.question;
+            
+            document.getElementById('current-choice-a').textContent = `A: ${question.choice_a}`;
+            document.getElementById('current-choice-b').textContent = `B: ${question.choice_b}`;
+            document.getElementById('current-choice-c').textContent = `C: ${question.choice_c}`;
+            
+            if (question.choice_d) {
+                document.getElementById('current-choice-d').textContent = `D: ${question.choice_d}`;
+                document.getElementById('current-choice-d').classList.remove('hidden');
+            } else {
+                document.getElementById('current-choice-d').classList.add('hidden');
+            }
+            
+            document.getElementById('current-answer').textContent = `${question.correct_choice} - ${question['choice_' + question.correct_choice.toLowerCase()]}`;
+        }
+
+        async function revealAnswer() {
+            if (!currentQuestion) {
+                alert('No question is currently displayed');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/api/set-current-question.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        action: 'reveal'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('current-answer-display').classList.remove('hidden');
+                    answerRevealed = true;
+                    await refreshAnswerStats();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function refreshAnswerStats() {
+            if (!currentQuestionId) return;
+            
+            try {
+                const response = await fetch(`/admin/api/get-mc-results.php?episode_id=${episodeId}&question_id=${currentQuestionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateAnswerStats(data);
+                }
+            } catch (error) {
+                console.error('Error fetching answer stats:', error);
+            }
+        }
+
+        function updateAnswerStats(data) {
+            const statsDiv = document.getElementById('answer-stats');
+            document.getElementById('answer-count').textContent = `(${data.total_answers} responses)`;
+            
+            if (data.total_answers === 0) {
+                statsDiv.innerHTML = '<p class="text-gray-400 text-center py-4">No responses yet</p>';
+                document.getElementById('correct-teams').classList.add('hidden');
+                return;
+            }
+            
+            statsDiv.innerHTML = '';
+            
+            ['A', 'B', 'C', 'D'].forEach(choice => {
+                if (!currentQuestion[`choice_${choice.toLowerCase()}`] && choice === 'D') return;
+                
+                const choiceData = data.breakdown[choice];
+                const isCorrect = choice === data.correct_choice;
+                const barColor = isCorrect ? 'bg-green-500' : 'bg-gray-400';
+                
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold ${isCorrect ? 'text-green-700' : 'text-gray-700'}">
+                            ${choice}: ${currentQuestion['choice_' + choice.toLowerCase()]}
+                        </span>
+                        <span class="text-sm ${isCorrect ? 'text-green-600' : 'text-gray-600'}">
+                            ${choiceData.percentage}% (${choiceData.count})
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4">
+                        <div class="${barColor} h-4 rounded-full transition-all" 
+                             style="width: ${choiceData.percentage}%"></div>
+                    </div>
+                `;
+                statsDiv.appendChild(div);
+            });
+            
+            // Show correct teams
+            if (data.correct_teams && data.correct_teams.length > 0) {
+                document.getElementById('correct-teams').classList.remove('hidden');
+                const listDiv = document.getElementById('correct-teams-list');
+                listDiv.innerHTML = data.correct_teams.map(team => 
+                    `<div>• ${team} (+${currentQuestion.points} pts)</div>`
+                ).join('');
+            } else {
+                document.getElementById('correct-teams').classList.add('hidden');
+            }
+        }
+
+        async function awardPoints() {
+            const teamId = document.getElementById('award-team').value;
+            const points = document.getElementById('award-points').value;
+            
+            if (!teamId || !points) {
+                alert('Please select a team and enter points');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/admin/api/update-score.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: parseInt(teamId),
+                        points: parseInt(points),
+                        action: 'add'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('award-points').value = '';
+                    await refreshScores();
+                }
+            } catch (error) {
+                console.error('Error awarding points:', error);
+            }
+        }
+
+        async function refreshScores() {
+            try {
+                const response = await fetch(`/admin/api/get-episode.php?id=${episodeId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateScoreboard(data.teams);
+                    document.getElementById('player-count').textContent = data.teams.length;
+                }
+            } catch (error) {
+                console.error('Error refreshing scores:', error);
+            }
+        }
+
+        function updateScoreboard(scores) {
+            const scoreboard = document.getElementById('scoreboard');
+            const awardTeam = document.getElementById('award-team');
+            
+            scoreboard.innerHTML = '';
+            awardTeam.innerHTML = '<option value="">-- Select team --</option>';
+            
+            scores.sort((a, b) => b.points - a.points);
+            
+            scores.forEach((team, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl font-bold text-gray-600">${index + 1}.</span>
+                        <span class="font-bold text-gray-800">${team.team_name}</span>
+                    </div>
+                    <span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+                `;
+                scoreboard.appendChild(div);
+                
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = `${team.team_name} (${team.points} pts)`;
+                awardTeam.appendChild(option);
+            });
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+        });
+    </script>
+</body>
+</html>
