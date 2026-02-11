@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
         } else {
             $imported = 0;
             $skipped = 0;
+            $duplicates = 0;
             $errors = [];
             $row_number = 0;
             
@@ -38,6 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
             if ($has_header) {
                 fgetcsv($handle);
             }
+            
+            // Get duplicate detection mode
+            $duplicate_mode = isset($_POST['duplicate_mode']) ? $_POST['duplicate_mode'] : 'skip';
             
             try {
                 $conn->beginTransaction();
@@ -75,6 +79,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                         $availability = 'available';
                     }
                     
+                    // Check for duplicates
+                    $stmt = $conn->prepare("
+                        SELECT id FROM questions 
+                        WHERE LOWER(TRIM(question)) = LOWER(TRIM(?))
+                        AND LOWER(TRIM(answer)) = LOWER(TRIM(?))
+                    ");
+                    $stmt->execute([$question, $answer]);
+                    $existing = $stmt->fetch();
+                    
+                    if ($existing) {
+                        // Duplicate found
+                        $duplicates++;
+                        
+                        if ($duplicate_mode === 'skip') {
+                            // Skip this question
+                            $errors[] = "Row $row_number: Duplicate question (skipped)";
+                            continue;
+                        } elseif ($duplicate_mode === 'update') {
+                            // Update existing question
+                            try {
+                                $stmt = $conn->prepare("
+                                    UPDATE questions 
+                                    SET theme = ?, level = ?, availability = ?, updated_at = CURRENT_TIMESTAMP
+                                    WHERE id = ?
+                                ");
+                                $stmt->execute([$theme, $level, $availability, $existing['id']]);
+                                $errors[] = "Row $row_number: Duplicate found - updated existing question";
+                                // Don't increment imported counter for updates
+                            } catch (PDOException $e) {
+                                $skipped++;
+                                $errors[] = "Row $row_number: Error updating - " . $e->getMessage();
+                            }
+                            continue;
+                        }
+                        // If duplicate_mode is 'allow', continue to insert
+                    }
+                    
                     // Insert question
                     try {
                         $stmt = $conn->prepare("
@@ -94,14 +135,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                 $upload_results = [
                     'imported' => $imported,
                     'skipped' => $skipped,
+                    'duplicates' => $duplicates,
                     'errors' => $errors
                 ];
                 
+                // Build success message
+                $messages = [];
                 if ($imported > 0) {
-                    $success = "Successfully imported $imported question(s)!";
+                    $messages[] = "Successfully imported $imported new question(s)";
                 }
+                if ($duplicates > 0 && $duplicate_mode === 'skip') {
+                    $messages[] = "Skipped $duplicates duplicate(s)";
+                }
+                if ($duplicates > 0 && $duplicate_mode === 'update') {
+                    $messages[] = "Updated $duplicates existing question(s)";
+                }
+                if ($duplicates > 0 && $duplicate_mode === 'allow') {
+                    $messages[] = "Added $duplicates duplicate(s) as requested";
+                }
+                
+                if (!empty($messages)) {
+                    $success = implode(' • ', $messages);
+                }
+                
                 if ($skipped > 0) {
-                    $error = "Skipped $skipped row(s) due to errors";
+                    $error = "Skipped " . ($skipped - $duplicates) . " row(s) due to errors";
                 }
                 
             } catch (Exception $e) {
@@ -153,14 +211,11 @@ $questions = $stmt->fetchAll();
                 <p class="font-bold"><?= htmlspecialchars($success) ?></p>
                 <?php if ($upload_results && !empty($upload_results['errors'])): ?>
                     <details class="mt-2">
-                        <summary class="cursor-pointer text-sm">View errors (<?= count($upload_results['errors']) ?>)</summary>
-                        <ul class="mt-2 text-sm list-disc list-inside">
-                            <?php foreach (array_slice($upload_results['errors'], 0, 10) as $err): ?>
+                        <summary class="cursor-pointer text-sm font-medium hover:underline">View details (<?= count($upload_results['errors']) ?>)</summary>
+                        <ul class="mt-2 text-sm list-disc list-inside max-h-60 overflow-y-auto">
+                            <?php foreach ($upload_results['errors'] as $err): ?>
                                 <li><?= htmlspecialchars($err) ?></li>
                             <?php endforeach; ?>
-                            <?php if (count($upload_results['errors']) > 10): ?>
-                                <li>... and <?= count($upload_results['errors']) - 10 ?> more</li>
-                            <?php endif; ?>
                         </ul>
                     </details>
                 <?php endif; ?>
@@ -273,7 +328,7 @@ $questions = $stmt->fetchAll();
 
     <!-- CSV Upload Modal -->
     <div id="upload-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-8">
+        <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">Import Questions from CSV</h2>
                 <button onclick="document.getElementById('upload-modal').classList.add('hidden')" 
@@ -293,6 +348,15 @@ $questions = $stmt->fetchAll();
                     <li><strong>Answer</strong> - The correct answer</li>
                     <li><strong>Availability</strong> - Optional: available or unavailable (default: available)</li>
                 </ol>
+            </div>
+
+            <!-- Duplicate Detection Notice -->
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded">
+                <h3 class="font-bold text-green-800 mb-2">🔍 Duplicate Detection</h3>
+                <p class="text-sm text-green-700">
+                    The system checks for duplicates by comparing question text and answer. 
+                    Choose how to handle duplicates below.
+                </p>
             </div>
 
             <!-- Example -->
@@ -328,6 +392,48 @@ What is the speed of light?,Science,hard,299792458 m/s,available</pre>
                     <label for="has_header" class="ml-2 text-sm text-gray-700">
                         First row is header (skip it)
                     </label>
+                </div>
+
+                <!-- Duplicate Handling Options -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        How to handle duplicates?
+                    </label>
+                    <div class="space-y-3">
+                        <label class="flex items-start p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer">
+                            <input type="radio" 
+                                   name="duplicate_mode" 
+                                   value="skip" 
+                                   checked
+                                   class="mt-1 w-4 h-4 text-blue-600">
+                            <div class="ml-3">
+                                <div class="font-medium text-gray-800">Skip duplicates (Recommended)</div>
+                                <div class="text-sm text-gray-600">Don't import questions that already exist</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer">
+                            <input type="radio" 
+                                   name="duplicate_mode" 
+                                   value="update"
+                                   class="mt-1 w-4 h-4 text-blue-600">
+                            <div class="ml-3">
+                                <div class="font-medium text-gray-800">Update existing</div>
+                                <div class="text-sm text-gray-600">Update theme, level, and availability for duplicates</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer">
+                            <input type="radio" 
+                                   name="duplicate_mode" 
+                                   value="allow"
+                                   class="mt-1 w-4 h-4 text-blue-600">
+                            <div class="ml-3">
+                                <div class="font-medium text-gray-800">Allow duplicates</div>
+                                <div class="text-sm text-gray-600">Import everything, even if duplicates exist</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="flex gap-4">
