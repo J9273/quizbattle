@@ -2,12 +2,11 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-
-require_once '../includes/bootstrap.php';  // ← ADD THIS
+require_once '../includes/bootstrap.php'; 
 session_start();
-// ... rest of filerequire_once '../includes/config-render.php';
+// ... rest of file
+require_once '../includes/config-render.php';
 require_once '../includes/auth.php';
-
 requireLogin();
 
 // Get statistics
