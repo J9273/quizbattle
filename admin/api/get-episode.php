@@ -50,13 +50,13 @@ try {
     
     // Get teams for this episode
     // Only return teams that have actually joined/played
-    // (have custom names or have earned points)
+    // Filter out placeholder "Team N" names unless they have points
     $stmt = $conn->prepare("
         SELECT * FROM teams 
         WHERE episode_id = ? 
         AND (
             points > 0 
-            OR team_name !~ '^Team [0-9]+$'
+            OR team_name NOT LIKE 'Team %'
         )
         ORDER BY points DESC, created_at ASC
     ");
