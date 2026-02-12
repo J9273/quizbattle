@@ -250,12 +250,12 @@ $default_date = date('Y-m-d');
         function generateTeamFields() {
             const numTeams = parseInt(document.getElementById('number_of_teams').value) || 0;
             const container = document.getElementById('team-inputs');
-            
+            /*
             if (numTeams < 2 || numTeams > 20) {
                 container.innerHTML = '<p class="text-red-600 text-sm">Please enter a number between 2 and 20</p>';
                 return;
             }
-            
+            */
             container.innerHTML = '';
             
             for (let i = 0; i < numTeams; i++) {
