@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Insert episode
             $stmt = $conn->prepare("
                 INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, status) 
-                VALUES (?, ?, ?, ?, ?) 
+                VALUES (?, ?, ?, ?) 
                 RETURNING id
             ");
             $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
