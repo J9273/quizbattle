@@ -409,7 +409,7 @@
                 const div = document.createElement('div');
                 div.className = 'bg-red-50 border-l-4 border-red-500 p-4 rounded';
                 if (index === 0) div.classList.add('new-buzz');
-                
+               
                 div.innerHTML = `
     <div class="flex items-center justify-between mb-2">
         <span class="font-bold text-gray-800">${buzz.team_name}</span>
@@ -511,12 +511,12 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded';
                 div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl font-bold text-gray-600">${index + 1}.</span>
-                        <span class="font-bold text-gray-800">${team.team_name}</span>
-                   ` </div>
-                    <span class="text-xl font-bold text-gray-800">${team.points} pts</span>
-                ;
+					<div class="flex items-center gap-3">
+					<span class="text-xl font-bold text-gray-600">${index + 1}.</span>
+					<span class="font-bold text-gray-800">${team.team_name}</span>
+					</div>
+					<span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+				`;
                 scoreboard.appendChild(div);
                 
                 // Award dropdown
