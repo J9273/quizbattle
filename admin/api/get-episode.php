@@ -39,18 +39,25 @@ try {
     $stmt->execute([$episode_id]);
     $episode = $stmt->fetch();
     
-    if ($episode) {
-        echo json_encode([
-            'success' => true,
-            'episode' => $episode
-        ]);
-    } else {
+    if (!$episode) {
         http_response_code(404);
         echo json_encode([
             'success' => false,
             'error' => 'Episode not found'
         ]);
+        exit;
     }
+    
+    // Get teams for this episode
+    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY points DESC");
+    $stmt->execute([$episode_id]);
+    $teams = $stmt->fetchAll();
+    
+    echo json_encode([
+        'success' => true,
+        'episode' => $episode,
+        'teams' => $teams
+    ]);
 } catch (PDOException $e) {
     error_log("Database error in get-episode.php: " . $e->getMessage());
     http_response_code(500);
