@@ -507,25 +507,24 @@
             scores.sort((a, b) => b.points - a.points);
             
             scores.forEach((team, index) => {
-                // Scoreboard
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded';
-                div.innerHTML = `
-					<div class="flex items-center gap-3">
+    // Scoreboard
+			const div = document.createElement('div');
+			div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded';
+			div.innerHTML = `
+				<div class="flex items-center gap-3">
 					<span class="text-xl font-bold text-gray-600">${index + 1}.</span>
 					<span class="font-bold text-gray-800">${team.team_name}</span>
-					</div>
-					<span class="text-xl font-bold text-gray-800">${team.points} pts</span>
-				`;
-                scoreboard.appendChild(div);
-                
-                // Award dropdown
-                const option = document.createElement('option');
-                option.value = team.id;
-                option.textContent = `${team.team_name} (${team.points} pts)`;
-                awardTeam.appendChild(option);
-            });
-        }
+				</div>
+				<span class="text-xl font-bold text-gray-800">${team.points} pts</span>
+			`;
+			scoreboard.appendChild(div);
+
+			// Award dropdown
+			const option = document.createElement('option');
+			option.value = team.id;
+			option.textContent = `${team.team_name} (${team.points} pts)`;
+			awardTeam.appendChild(option);
+		});
 
         // Stop polling when leaving page
         window.addEventListener('beforeunload', () => {
