@@ -13,8 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $episode_name = $_POST['episode_name'] ?? '';
     $episode_date = $_POST['episode_date'] ?? '';
     $quiz_format = $_POST['quiz_format'] ?? 'cutthroat';
-  //  $number_of_teams = (int)($_POST['number_of_teams'] ?? 0);
-  //  $team_names = $_POST['team_names'] ?? [];
     $status = $_POST['status'] ?? 'active';
     
     // Validation
@@ -24,16 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Episode date is required";
     } elseif (!in_array($quiz_format, ['cutthroat', 'multiple_choice'])) {
         $error = "Invalid quiz format";
- //   } elseif ($number_of_teams < 2) {
- //       $error = "At least 2 teams are required";
- //   } elseif (count(array_filter($team_names)) < $number_of_teams) {
- //       $error = "Please provide names for all {$number_of_teams} teams";
     } else {
         try {
-            // Start transaction
-            $conn->beginTransaction();
-            
-            // Insert episode
+            // Insert episode (no transaction needed since we're only inserting one record)
             $stmt = $conn->prepare("
                 INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, status) 
                 VALUES (?, ?, ?, ?) 
@@ -43,32 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $episode = $stmt->fetch();
             $episode_id = $episode['id'];
             
-            // Insert teams
-            $stmt = $conn->prepare("
-                INSERT INTO teams (episode_id, team_name, points, position) 
-                VALUES (?, ?, 0, ?)
-            ");
-            
-            $position = 1;
-            foreach ($team_names as $team_name) {
-                $team_name = trim($team_name);
-                if (!empty($team_name)) {
-                    $stmt->execute([$episode_id, $team_name, $position]);
-                    $position++;
-                }
-            }
-            
-            // Commit transaction
-            $conn->commit();
+            // Teams will be created dynamically as players join via join-episode.php
             
             $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
-            $success = "Episode '{$episode_name}' created successfully as {$format_label} format with {$number_of_teams} teams!";
+            $success = "Episode '{$episode_name}' created successfully as {$format_label} format! Teams will be added as players join.";
             
             // Clear form
             $_POST = [];
             
         } catch (PDOException $e) {
-            $conn->rollBack();
             $error = "Error creating episode: " . $e->getMessage();
             error_log("Add episode error: " . $e->getMessage());
         }
@@ -110,7 +84,7 @@ $default_date = date('Y-m-d');
         <!-- Header -->
         <div class="mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Create New Episode</h1>
-            <p class="text-gray-600 mt-2">Set up a new quiz episode with teams</p>
+            <p class="text-gray-600 mt-2">Set up a new quiz episode. Teams will join dynamically when players connect.</p>
         </div>
 
         <!-- Success Message -->
@@ -223,7 +197,15 @@ $default_date = date('Y-m-d');
                     </select>
                 </div>
 
-                  <!-- Submit Buttons -->
+                <!-- Info Box -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <p class="text-sm text-blue-800">
+                        <strong>Note:</strong> Teams will be created automatically as players join the episode using their devices. 
+                        You don't need to pre-create teams.
+                    </p>
+                </div>
+
+                <!-- Submit Buttons -->
                 <div class="flex gap-4 pt-4">
                     <button type="submit" 
                             class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">
@@ -237,66 +219,5 @@ $default_date = date('Y-m-d');
             </form>
         </div>
     </div>
-
-    <script>
-        // Quick fill options
-        const quickFillOptions = {
-            numbered: (index) => `Team ${index + 1}`,
-            colors: ['Red Team', 'Blue Team', 'Green Team', 'Yellow Team', 'Orange Team', 'Purple Team', 'Pink Team', 'Black Team', 'White Team', 'Gray Team'],
-            animals: ['Lions', 'Tigers', 'Bears', 'Eagles', 'Sharks', 'Wolves', 'Panthers', 'Falcons', 'Dragons', 'Phoenix', 'Cobras', 'Vipers']
-        };
-
-        // Generate team input fields
-        function generateTeamFields() {
-            const numTeams = parseInt(document.getElementById('number_of_teams').value) || 0;
-            const container = document.getElementById('team-inputs');
-            /*
-            if (numTeams < 2 || numTeams > 20) {
-                container.innerHTML = '<p class="text-red-600 text-sm">Please enter a number between 2 and 20</p>';
-                return;
-            }
-            */
-            container.innerHTML = '';
-            
-            for (let i = 0; i < numTeams; i++) {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-3';
-                div.innerHTML = `
-                    <span class="text-gray-600 font-bold min-w-[60px]">Team ${i + 1}:</span>
-                    <input type="text" 
-                           name="team_names[]" 
-                           required
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="Enter team name">
-                `;
-                container.appendChild(div);
-            }
-        }
-
-        // Quick fill team names
-        function quickFillTeams(type) {
-            const inputs = document.querySelectorAll('input[name="team_names[]"]');
-            
-            inputs.forEach((input, index) => {
-                if (type === 'numbered') {
-                    input.value = quickFillOptions.numbered(index);
-                } else if (quickFillOptions[type] && quickFillOptions[type][index]) {
-                    input.value = quickFillOptions[type][index];
-                }
-            });
-        }
-
-        // Clear all team names
-        function clearTeamNames() {
-            const inputs = document.querySelectorAll('input[name="team_names[]"]');
-            inputs.forEach(input => input.value = '');
-            inputs[0]?.focus();
-        }
-
-        // Generate initial team fields
-        document.addEventListener('DOMContentLoaded', function() {
-            generateTeamFields();
-        });
-    </script>
 </body>
 </html>
