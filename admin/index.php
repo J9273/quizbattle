@@ -37,7 +37,6 @@ try {
     $error = "Error loading dashboard data";
     error_log("Dashboard error: " . $e->getMessage());
 }
-print_r($_SESSION);
 ?>
 <!DOCTYPE html>
 <html lang="en">
