@@ -49,7 +49,17 @@ try {
     }
     
     // Get teams for this episode
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY points DESC");
+    // Only return teams that have actually joined/played
+    // (have custom names or have earned points)
+    $stmt = $conn->prepare("
+        SELECT * FROM teams 
+        WHERE episode_id = ? 
+        AND (
+            points > 0 
+            OR team_name !~ '^Team [0-9]+$'
+        )
+        ORDER BY points DESC, created_at ASC
+    ");
     $stmt->execute([$episode_id]);
     $teams = $stmt->fetchAll();
     
