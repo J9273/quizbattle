@@ -1,40 +1,40 @@
 <?php
 /**
- * Get Episode API
- * Retrieves episode information by ID
+ * Get Episode API - Debug Version
+ * Test basic functionality first
  */
 
-// Enable error reporting for debugging (remove in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-
-require_once '../../includes/config-render.php';
+// Set headers first
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-// Only accept GET
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    echo json_encode(['success' => false, 'error' => 'GET method required']);
-    exit;
-}
-
-// Get episode ID from query parameter
-$episode_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-// Validation
-if (!$episode_id) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Episode ID required']);
-    exit;
-}
-
+// Test 1: Can we even output?
 try {
-    // Check if $pdo exists
-    if (!isset($pdo)) {
-        throw new Exception('Database connection not available');
+    // Test without requiring config-render.php first
+    $episode_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    
+    if (!$episode_id) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'Episode ID required', 'debug' => 'validation failed']);
+        exit;
     }
     
-    // Query the episode - try named parameters instead of $1
+    // Test 2: Try to include the config
+    $config_path = '../../includes/config-render.php';
+    if (!file_exists($config_path)) {
+        echo json_encode(['success' => false, 'error' => 'Config file not found at: ' . $config_path]);
+        exit;
+    }
+    
+    require_once $config_path;
+    
+    // Test 3: Check if $pdo exists
+    if (!isset($pdo)) {
+        echo json_encode(['success' => false, 'error' => 'Database connection ($pdo) not available after requiring config']);
+        exit;
+    }
+    
+    // Test 4: Try the query
     $stmt = $pdo->prepare("SELECT * FROM quiz_episodes WHERE id = :id");
     $stmt->bindParam(':id', $episode_id, PDO::PARAM_INT);
     $stmt->execute();
@@ -49,22 +49,17 @@ try {
         http_response_code(404);
         echo json_encode([
             'success' => false,
-            'error' => 'Episode not found'
+            'error' => 'Episode not found with ID: ' . $episode_id
         ]);
     }
-} catch (PDOException $e) {
-    error_log("Database error in get-episode.php: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'error' => 'Database error: ' . $e->getMessage()
-    ]);
+    
 } catch (Exception $e) {
-    error_log("Error in get-episode.php: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Server error: ' . $e->getMessage()
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
     ]);
 }
 ?>
