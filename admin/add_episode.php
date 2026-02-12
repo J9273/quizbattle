@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $episode_name = $_POST['episode_name'] ?? '';
     $episode_date = $_POST['episode_date'] ?? '';
     $quiz_format = $_POST['quiz_format'] ?? 'cutthroat';
-    $number_of_teams = (int)($_POST['number_of_teams'] ?? 0);
-    $team_names = $_POST['team_names'] ?? [];
+  //  $number_of_teams = (int)($_POST['number_of_teams'] ?? 0);
+  //  $team_names = $_POST['team_names'] ?? [];
     $status = $_POST['status'] ?? 'active';
     
     // Validation
@@ -24,10 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Episode date is required";
     } elseif (!in_array($quiz_format, ['cutthroat', 'multiple_choice'])) {
         $error = "Invalid quiz format";
-    } elseif ($number_of_teams < 2) {
-        $error = "At least 2 teams are required";
-    } elseif (count(array_filter($team_names)) < $number_of_teams) {
-        $error = "Please provide names for all {$number_of_teams} teams";
+ //   } elseif ($number_of_teams < 2) {
+ //       $error = "At least 2 teams are required";
+ //   } elseif (count(array_filter($team_names)) < $number_of_teams) {
+ //       $error = "Please provide names for all {$number_of_teams} teams";
     } else {
         try {
             // Start transaction
@@ -35,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Insert episode
             $stmt = $conn->prepare("
-                INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, number_of_teams, status) 
+                INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, status) 
                 VALUES (?, ?, ?, ?, ?) 
                 RETURNING id
             ");
-            $stmt->execute([$episode_name, $episode_date, $quiz_format, $number_of_teams, $status]);
+            $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
             $episode = $stmt->fetch();
             $episode_id = $episode['id'];
             
@@ -223,62 +223,7 @@ $default_date = date('Y-m-d');
                     </select>
                 </div>
 
-                <!-- Number of Teams -->
- <!--               <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Number of Teams <span class="text-red-500">*</span>
-                    </label>
-                    <input type="number" 
-                           name="number_of_teams" 
-                           id="number_of_teams"
-                           min="2" 
-                           max="20"                           
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           placeholder="e.g., 4"
-                           value=""
-                           onchange="generateTeamFields()">
-                </div>
-//-->
-                <!-- Team Names (Dynamic) -->
-<!--     
-				<div id="team-names-container">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">
-                        Team Names <span class="text-red-500">*</span>
-                    </label>
-                    <div id="team-inputs" class="space-y-3">
-                        
-                    </div>
-                </div>
-//-->
-                <!-- Quick Fill Buttons -->
-<!--				
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-sm font-medium text-blue-800 mb-3">Quick Fill Team Names:</p>
-                    <div class="flex flex-wrap gap-2">
-                        <button type="button" 
-                                onclick="quickFillTeams('numbered')"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
-                            Team 1, Team 2, Team 3...
-                        </button>
-                        <button type="button" 
-                                onclick="quickFillTeams('colors')"
-                                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm">
-                            Red, Blue, Green...
-                        </button>
-                        <button type="button" 
-                                onclick="quickFillTeams('animals')"
-                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm">
-                            Lions, Tigers, Bears...
-                        </button>
-                        <button type="button" 
-                                onclick="clearTeamNames()"
-                                class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm">
-                            Clear All
-                        </button>
-                    </div>
-                </div>
-//-->
-                <!-- Submit Buttons -->
+                  <!-- Submit Buttons -->
                 <div class="flex gap-4 pt-4">
                     <button type="submit" 
                             class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all">
