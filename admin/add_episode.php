@@ -224,7 +224,7 @@ $default_date = date('Y-m-d');
                 </div>
 
                 <!-- Number of Teams -->
-                <div>
+ <!--               <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Number of Teams <span class="text-red-500">*</span>
                     </label>
@@ -232,25 +232,26 @@ $default_date = date('Y-m-d');
                            name="number_of_teams" 
                            id="number_of_teams"
                            min="2" 
-                           max="20"
-                           required
+                           max="20"                           
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                            placeholder="e.g., 4"
-                           value="<?= htmlspecialchars($_POST['number_of_teams'] ?? '4') ?>"
+                           value="<?= # htmlspecialchars($_POST['number_of_teams'] ?? '4') ?>"
                            onchange="generateTeamFields()">
                 </div>
-
+//-->
                 <!-- Team Names (Dynamic) -->
-                <div id="team-names-container">
+<!--     
+				<div id="team-names-container">
                     <label class="block text-sm font-medium text-gray-700 mb-3">
                         Team Names <span class="text-red-500">*</span>
                     </label>
                     <div id="team-inputs" class="space-y-3">
-                        <!-- Team inputs will be generated here -->
+                        
                     </div>
                 </div>
-
+//-->
                 <!-- Quick Fill Buttons -->
+<!--				
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p class="text-sm font-medium text-blue-800 mb-3">Quick Fill Team Names:</p>
                     <div class="flex flex-wrap gap-2">
@@ -276,7 +277,7 @@ $default_date = date('Y-m-d');
                         </button>
                     </div>
                 </div>
-
+//-->
                 <!-- Submit Buttons -->
                 <div class="flex gap-4 pt-4">
                     <button type="submit" 
