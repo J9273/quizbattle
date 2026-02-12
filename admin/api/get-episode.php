@@ -3,6 +3,12 @@
  * Get Episode API
  * Retrieves episode information by ID
  */
+
+// Enable error reporting for debugging (remove in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 require_once '../../includes/config-render.php';
 header('Content-Type: application/json');
 
@@ -23,9 +29,15 @@ if (!$episode_id) {
 }
 
 try {
-    // Query the episode
-    $stmt = $pdo->prepare("SELECT * FROM quiz_episodes WHERE id = $1");
-    $stmt->execute([$episode_id]);
+    // Check if $pdo exists
+    if (!isset($pdo)) {
+        throw new Exception('Database connection not available');
+    }
+    
+    // Query the episode - try named parameters instead of $1
+    $stmt = $pdo->prepare("SELECT * FROM quiz_episodes WHERE id = :id");
+    $stmt->bindParam(':id', $episode_id, PDO::PARAM_INT);
+    $stmt->execute();
     $episode = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($episode) {
@@ -45,7 +57,14 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Database error occurred'
+        'error' => 'Database error: ' . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    error_log("Error in get-episode.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Server error: ' . $e->getMessage()
     ]);
 }
 ?>
