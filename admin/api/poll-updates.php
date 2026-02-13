@@ -69,7 +69,13 @@ try {
                     'question' => $question['question'],
                     'theme' => $question['theme'],
                     'level' => $question['level'],
-                    'points' => $question['points']
+                    'points' => $question['points'],
+                    'question_format' => $question['question_format'],
+                    'choice_a' => $question['choice_a'],
+                    'choice_b' => $question['choice_b'],
+                    'choice_c' => $question['choice_c'],
+                    'choice_d' => $question['choice_d'],
+                    'correct_choice' => $question['correct_choice']
                 ];
                 
                 // Include answer only if revealed
@@ -128,3 +134,4 @@ try {
         'error' => 'Database error'
     ]);
 }
+?>
