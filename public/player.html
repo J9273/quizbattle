@@ -18,6 +18,19 @@
             100% { transform: scale(1); }
         }
         .buzzing { animation: buzz-animation 0.3s ease-in-out; }
+        
+        .choice-button {
+            transition: all 0.2s ease;
+        }
+        .choice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .choice-button.selected {
+            background-color: rgb(37, 99, 235);
+            color: white;
+            border-color: rgb(29, 78, 216);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 min-h-screen">
@@ -115,8 +128,8 @@
                         </div>
                     </div>
 
-                    <!-- Buzz Form -->
-                    <form id="buzz-form" class="space-y-4">
+                    <!-- CutThroat: Text Input + Buzz Form -->
+                    <form id="buzz-form" class="hidden space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Your Answer:</label>
                             <input type="text" 
@@ -132,6 +145,52 @@
                             🔔 BUZZ IN!
                         </button>
                     </form>
+
+                    <!-- Multiple Choice: A/B/C/D Buttons -->
+                    <div id="mc-form" class="hidden">
+                        <p class="text-sm font-medium text-gray-700 mb-4">Select your answer:</p>
+                        <div class="grid grid-cols-1 gap-4 mb-6">
+                            <button type="button" 
+                                    onclick="selectChoice('A')" 
+                                    id="choice-a-btn"
+                                    class="choice-button text-left p-6 border-4 border-gray-300 rounded-lg bg-white hover:border-blue-500">
+                                <span class="font-bold text-2xl text-blue-600 mr-3">A</span>
+                                <span class="text-lg text-gray-800" id="choice-a-text"></span>
+                            </button>
+                            
+                            <button type="button" 
+                                    onclick="selectChoice('B')" 
+                                    id="choice-b-btn"
+                                    class="choice-button text-left p-6 border-4 border-gray-300 rounded-lg bg-white hover:border-blue-500">
+                                <span class="font-bold text-2xl text-green-600 mr-3">B</span>
+                                <span class="text-lg text-gray-800" id="choice-b-text"></span>
+                            </button>
+                            
+                            <button type="button" 
+                                    onclick="selectChoice('C')" 
+                                    id="choice-c-btn"
+                                    class="choice-button text-left p-6 border-4 border-gray-300 rounded-lg bg-white hover:border-blue-500">
+                                <span class="font-bold text-2xl text-yellow-600 mr-3">C</span>
+                                <span class="text-lg text-gray-800" id="choice-c-text"></span>
+                            </button>
+                            
+                            <button type="button" 
+                                    onclick="selectChoice('D')" 
+                                    id="choice-d-btn"
+                                    class="choice-button text-left p-6 border-4 border-gray-300 rounded-lg bg-white hover:border-blue-500 hidden">
+                                <span class="font-bold text-2xl text-red-600 mr-3">D</span>
+                                <span class="text-lg text-gray-800" id="choice-d-text"></span>
+                            </button>
+                        </div>
+
+                        <button type="button" 
+                                onclick="submitMCAnswer()" 
+                                id="mc-submit-button"
+                                disabled
+                                class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-6 px-8 rounded-lg text-2xl transition-all">
+                            Submit Answer
+                        </button>
+                    </div>
 
                     <div id="buzz-confirmation" class="hidden mt-4 bg-green-100 border-l-4 border-green-500 p-4 rounded">
                         <p class="text-green-800 font-bold">✅ Your answer has been submitted!</p>
@@ -152,13 +211,13 @@
 
     <script>
         // NOTE: This version uses HTTP polling instead of WebSocket
-        // WebSocket background workers aren't accessible from outside on Render free tier
         
         let episodeId = null;
         let teamName = null;
         let teamId = null;
         let pollInterval = null;
         let currentQuestionId = null;
+        let selectedChoice = null;
 
         // Join form submission
         document.getElementById('join-form').addEventListener('submit', async (e) => {
@@ -239,6 +298,7 @@
 
         function displayQuestion(question) {
             currentQuestionId = question.id;
+            selectedChoice = null;
             
             document.getElementById('waiting-state').classList.add('hidden');
             document.getElementById('question-state').classList.remove('hidden');
@@ -248,14 +308,86 @@
             document.getElementById('q-theme').textContent = question.theme;
             document.getElementById('q-points').textContent = question.points;
             document.getElementById('q-text').textContent = question.question;
-            document.getElementById('answer-input').value = '';
-            document.getElementById('buzz-form').classList.remove('hidden');
+            
+            // Show appropriate form based on question format
+            const isMC = question.question_format === 'multiple_choice';
+            
+            if (isMC) {
+                // Multiple Choice
+                document.getElementById('buzz-form').classList.add('hidden');
+                document.getElementById('mc-form').classList.remove('hidden');
+                
+                // Populate choices
+                document.getElementById('choice-a-text').textContent = question.choice_a;
+                document.getElementById('choice-b-text').textContent = question.choice_b;
+                document.getElementById('choice-c-text').textContent = question.choice_c;
+                
+                // Show/hide choice D based on whether it exists
+                const choiceDBtn = document.getElementById('choice-d-btn');
+                if (question.choice_d && question.choice_d.trim()) {
+                    document.getElementById('choice-d-text').textContent = question.choice_d;
+                    choiceDBtn.classList.remove('hidden');
+                } else {
+                    choiceDBtn.classList.add('hidden');
+                }
+                
+                // Reset button states
+                document.querySelectorAll('.choice-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                document.getElementById('mc-submit-button').disabled = true;
+                
+            } else {
+                // CutThroat
+                document.getElementById('mc-form').classList.add('hidden');
+                document.getElementById('buzz-form').classList.remove('hidden');
+                document.getElementById('answer-input').value = '';
+            }
+        }
+
+        function selectChoice(choice) {
+            selectedChoice = choice;
+            
+            // Update button styles
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById(`choice-${choice.toLowerCase()}-btn`).classList.add('selected');
+            
+            // Enable submit button
+            document.getElementById('mc-submit-button').disabled = false;
+        }
+
+        async function submitMCAnswer() {
+            if (!selectedChoice) return;
+            
+            try {
+                const response = await fetch('/admin/api/submit-mc-answer.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId,
+                        team_id: teamId,
+                        question_id: currentQuestionId,
+                        choice: selectedChoice
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showBuzzConfirmation();
+                }
+            } catch (error) {
+                console.error('Submit error:', error);
+            }
         }
 
         function revealAnswer(answer) {
             document.getElementById('q-answer').textContent = answer;
             document.getElementById('answer-section').classList.remove('hidden');
             document.getElementById('buzz-form').classList.add('hidden');
+            document.getElementById('mc-form').classList.add('hidden');
         }
 
         function updateScores(scores) {
@@ -285,7 +417,7 @@
             });
         }
 
-        // Buzz form submission
+        // CutThroat buzz form submission
         document.getElementById('buzz-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -320,6 +452,7 @@
         function showBuzzConfirmation() {
             document.getElementById('buzz-confirmation').classList.remove('hidden');
             document.getElementById('buzz-form').classList.add('hidden');
+            document.getElementById('mc-form').classList.add('hidden');
         }
 
         function showJoinError(message) {
