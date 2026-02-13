@@ -3,39 +3,30 @@
  * Join Episode API
  * Registers a player/team to an episode
  */
-
 require_once '../../includes/config-render.php';
-
 header('Content-Type: application/json');
-
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'POST method required']);
     exit;
 }
-
 // Get JSON input
 $input = json_decode(file_get_contents('php://input'), true);
-
 $episode_id = isset($input['episode_id']) ? (int)$input['episode_id'] : 0;
 $team_name = isset($input['team_name']) ? trim($input['team_name']) : '';
-
 // Validation
 if (!$episode_id) {
     echo json_encode(['success' => false, 'error' => 'Episode ID required']);
     exit;
 }
-
 if (empty($team_name)) {
     echo json_encode(['success' => false, 'error' => 'Team name required']);
     exit;
 }
-
 if (strlen($team_name) > 50) {
     echo json_encode(['success' => false, 'error' => 'Team name too long (max 50 characters)']);
     exit;
 }
-
 try {
     // Check if episode exists and is active
     $stmt = $conn->prepare("SELECT * FROM quiz_episodes WHERE id = ?");
@@ -76,14 +67,6 @@ try {
         $stmt->execute([$episode_id, $team_name, $episode_id]);
         $new_team = $stmt->fetch();
         
-        // Update episode team count
-        $stmt = $conn->prepare("
-            UPDATE quiz_episodes 
-            SET number_of_teams = (SELECT COUNT(*) FROM teams WHERE episode_id = ?)
-            WHERE id = ?
-        ");
-        $stmt->execute([$episode_id, $episode_id]);
-        
         echo json_encode([
             'success' => true,
             'team_id' => $new_team['id'],
@@ -97,6 +80,7 @@ try {
     error_log("Join episode error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'error' => 'Database error'
+        'error' => 'Database error: ' . $e->getMessage()
     ]);
 }
+?>
