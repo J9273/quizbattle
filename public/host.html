@@ -250,7 +250,7 @@
 
         async function loadQuestions() {
             try {
-                const response = await fetch('/admin/api/get_questions.php');
+                 const response = await fetch(`/admin/api/get_questions.php?episode_id=${episodeId}`);
                 const data = await response.json();
                 questions = data.questions || [];
                 
