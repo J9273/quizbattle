@@ -28,13 +28,13 @@
 
             <form id="join-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Episode ID</label>
-                    <input type="number" 
-                           id="episode-id" 
-                           required
-                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                           placeholder="Enter episode ID">
-                    <p class="text-xs text-gray-500 mt-1">Get this from your admin panel</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Episode</label>
+                    <select id="episode-select" 
+                            required
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg">
+                        <option value="">Loading episodes...</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Choose an episode to host</p>
                 </div>
 
                 <button type="submit" 
@@ -199,12 +199,54 @@
         let questions = [];
         let buzzesReceived = [];
         let pollInterval = null;
+		
+		// Load available episodes on page load
+        async function loadEpisodes() {
+            try {
+                const response = await fetch('/admin/api/get-episodes.php');
+                const data = await response.json();
+                
+                const select = document.getElementById('episode-select');
+                select.innerHTML = '';
+                
+                if (data.success && data.episodes && data.episodes.length > 0) {
+                    // Add placeholder option
+                    const placeholderOption = document.createElement('option');
+                    placeholderOption.value = '';
+                    placeholderOption.textContent = '-- Select an episode --';
+                    select.appendChild(placeholderOption);
+                    
+                    // Add episodes
+                    data.episodes.forEach(episode => {
+                        const option = document.createElement('option');
+                        option.value = episode.id;
+                        const date = new Date(episode.episode_date).toLocaleDateString();
+                        const format = episode.quiz_format === 'cutthroat' ? '🎯' : '✓';
+                        option.textContent = `${format} ${episode.episode_name} (${date})`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">No active episodes available</option>';
+                }
+            } catch (error) {
+                console.error('Error loading episodes:', error);
+                document.getElementById('episode-select').innerHTML = '<option value="">Error loading episodes</option>';
+            }
+        }
+
+        // Load episodes when page loads
+        document.addEventListener('DOMContentLoaded', loadEpisodes);
 
         // Join form
         document.getElementById('join-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            episodeId = document.getElementById('episode-id').value;
+            episodeId = document.getElementById('episode-select').value;
+            
+            if (!episodeId) {
+                alert('Please select an episode');
+                return;
+            }
 
             // Verify episode exists
             try {
