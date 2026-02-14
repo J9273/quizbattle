@@ -22,7 +22,7 @@
         background-color: #f4f4f4;
     }
 */
-		body {
+	body {
     min-height: 100vh;
     display: grid;
     place-items: center;
@@ -34,6 +34,58 @@
         height: 400px;
         object-fit: cover; /* Keeps image proportional */
     }
+	
+	/* MENU CONTAINER */
+.menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    background: #543f97;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+/* Expand on hover (desktop) */
+.menu:hover {
+    width: 200px;
+}
+
+/* Hamburger Icon */
+.menu-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+/* Menu Items */
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Show items when expanded */
+.menu:hover .menu-items {
+    opacity: 1;
+}
+
+.menu a {
+    text-decoration: none;
+    color: white;
+    padding: 15px;
+    transition: background 0.3s;
+}
+
+.menu a:hover {
+    background: #374151;
+}
 
 /* Button Base */
 .join-btn {
@@ -94,6 +146,30 @@ A {
 	text-decoration: none;
 /*	font-size: 3vw;		*/
 		}
+footer {
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		text-align: center;
+		font-size: 1vw;
+	color: #8C8C8C;
+		}			
+		
+
+		/* Mobile Tap Support */
+@media (hover: none) {
+    .menu {
+        width: 60px;
+    }
+
+    .menu.active {
+        width: 200px;
+    }
+
+    .menu.active .menu-items {
+        opacity: 1;
+    }
+}
 		
     /* Optional: Improve mobile behavior */
     @media (max-width: 480px) {
@@ -101,11 +177,26 @@ A {
             width: 150px;
             height: 150px;
         }
+		footer {
+			font-size: 5vw;
+		}
     }
+		
+	
 </style>
 </head>
 
 <body>
+	
+	<div class="menu" id="menu">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="menu-items">
+        <a href="#" data-url="https://quizbattle-9ls0.onrender.com">Home</a>
+        <a href="#" data-url="https://quizbattle-9ls0.onrender.com/admin/login.php">Admin</a>
+        <a href="#" data-url="https://quizbattle-9ls0.onrender.com/public/player.html">Join Game</a>
+        <a href="#">Logout</a>
+    </div>
+</div>
 	<picture>
      
   <img 
@@ -115,5 +206,22 @@ A {
 </picture>
 	<button class="join-btn"><a href="https://quizbattle-9ls0.onrender.com/public/player.html">Join Game</a></button>
 
+	<footer>
+		2026 &copy; John Ward
+	</footer>
+<script>
+function toggleMenu() {
+    document.getElementById("menu").classList.toggle("active");
+}
+	function openPage(url) {
+    window.location.href = url;
+}
+	document.querySelectorAll('.menu-items a').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = this.dataset.url;
+    });
+});
+</script>	
 </body>
 </html>
