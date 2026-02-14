@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Quiz Battle Winners!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes trophy-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+
+        @keyframes podium-rise {
+            0% { transform: translateY(100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall linear infinite;
+        }
+
+        .trophy-bounce {
+            animation: trophy-bounce 2s ease-in-out infinite;
+        }
+
+        .podium-1st {
+            animation: podium-rise 1s ease-out 0.5s both;
+        }
+
+        .podium-2nd {
+            animation: podium-rise 1s ease-out 0.3s both;
+        }
+
+        .podium-3rd {
+            animation: podium-rise 1s ease-out 0.7s both;
+        }
+
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shine 3s infinite;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .gradient-gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
+        }
+
+        .gradient-silver {
+            background: linear-gradient(135deg, #C0C0C0, #E8E8E8, #C0C0C0);
+        }
+
+        .gradient-bronze {
+            background: linear-gradient(135deg, #CD7F32, #B8860B, #CD7F32);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen overflow-hidden">
+    
+    <!-- Confetti Container -->
+    <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <!-- Main Content -->
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 relative z-10">
+        
+        <!-- Title -->
+        <div class="text-center mb-12">
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-4 trophy-bounce">
+                🏆 WINNERS! 🏆
+            </h1>
+            <p class="text-2xl md:text-3xl text-yellow-300 font-bold" id="episode-name">
+                Quiz Battle Champions
+            </p>
+        </div>
+
+        <!-- Podium -->
+        <div class="flex items-end justify-center gap-4 md:gap-8 mb-8">
+            
+            <!-- 2nd Place -->
+            <div class="podium-2nd text-center">
+                <div class="shine-effect gradient-silver rounded-lg p-6 mb-4 transform hover:scale-105 transition-transform">
+                    <div class="text-6xl mb-3">🥈</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2" id="team-2nd">Team Name</h2>
+                    <p class="text-4xl font-bold text-gray-700" id="points-2nd">0 pts</p>
+                </div>
+                <div class="gradient-silver rounded-t-lg w-32 md:w-40 h-32 md:h-40 flex items-center justify-center">
+                    <span class="text-6xl md:text-7xl font-bold text-gray-700">2</span>
+                </div>
+            </div>
+
+            <!-- 1st Place -->
+            <div class="podium-1st text-center">
+                <div class="shine-effect pulse-glow gradient-gold rounded-lg p-8 mb-4 transform hover:scale-105 transition-transform">
+                    <div class="text-7xl mb-3 trophy-bounce">👑</div>
+                    <h2 class="text-3xl font-bold text-yellow-900 mb-2" id="team-1st">Team Name</h2>
+                    <p class="text-5xl font-bold text-yellow-800" id="points-1st">0 pts</p>
+                </div>
+                <div class="gradient-gold rounded-t-lg w-40 md:w-48 h-48 md:h-56 flex items-center justify-center">
+                    <span class="text-8xl md:text-9xl font-bold text-yellow-800">1</span>
+                </div>
+            </div>
+
+            <!-- 3rd Place -->
+            <div class="podium-3rd text-center">
+                <div class="shine-effect gradient-bronze rounded-lg p-6 mb-4 transform hover:scale-105 transition-transform">
+                    <div class="text-6xl mb-3">🥉</div>
+                    <h2 class="text-2xl font-bold text-yellow-900 mb-2" id="team-3rd">Team Name</h2>
+                    <p class="text-4xl font-bold text-yellow-800" id="points-3rd">0 pts</p>
+                </div>
+                <div class="gradient-bronze rounded-t-lg w-32 md:w-40 h-24 md:h-32 flex items-center justify-center">
+                    <span class="text-6xl md:text-7xl font-bold text-yellow-800">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Teams List -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-lg p-6 max-w-2xl w-full mt-8">
+            <h3 class="text-2xl font-bold text-white mb-4 text-center">Final Standings</h3>
+            <div id="all-teams" class="space-y-2">
+                <!-- Teams will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Return Button -->
+        <div class="mt-8">
+            <a href="/admin/episodes.php" 
+               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-all transform hover:scale-105">
+                Return to Episodes
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Get episode ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const episodeId = urlParams.get('episode_id');
+
+        // Create confetti
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(confetti);
+            }
+        }
+
+        // Load winners data
+        async function loadWinners() {
+            if (!episodeId) {
+                console.error('No episode ID provided');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/api/get-episode-results.php?episode_id=${episodeId}`);
+                const data = await response.json();
+                
+                if (data.success && data.teams && data.teams.length > 0) {
+                    displayWinners(data);
+                } else {
+                    console.error('No teams found');
+                }
+            } catch (error) {
+                console.error('Error loading winners:', error);
+            }
+        }
+
+        function displayWinners(data) {
+            // Set episode name
+            if (data.episode) {
+                document.getElementById('episode-name').textContent = data.episode.episode_name;
+            }
+
+            const teams = data.teams;
+
+            // Display top 3
+            if (teams[0]) {
+                document.getElementById('team-1st').textContent = teams[0].team_name;
+                document.getElementById('points-1st').textContent = teams[0].points + ' pts';
+            }
+
+            if (teams[1]) {
+                document.getElementById('team-2nd').textContent = teams[1].team_name;
+                document.getElementById('points-2nd').textContent = teams[1].points + ' pts';
+            } else {
+                document.querySelector('.podium-2nd').style.display = 'none';
+            }
+
+            if (teams[2]) {
+                document.getElementById('team-3rd').textContent = teams[2].team_name;
+                document.getElementById('points-3rd').textContent = teams[2].points + ' pts';
+            } else {
+                document.querySelector('.podium-3rd').style.display = 'none';
+            }
+
+            // Display all teams
+            const allTeamsList = document.getElementById('all-teams');
+            teams.forEach((team, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-white/20 rounded-lg';
+                
+                let medal = '';
+                if (index === 0) medal = '👑';
+                else if (index === 1) medal = '🥈';
+                else if (index === 2) medal = '🥉';
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl font-bold text-white w-12">${medal || (index + 1) + '.'}</span>
+                        <span class="text-xl font-bold text-white">${team.team_name}</span>
+                    </div>
+                    <span class="text-2xl font-bold text-yellow-300">${team.points} pts</span>
+                `;
+                allTeamsList.appendChild(div);
+            });
+        }
+
+        // Initialize
+        createConfetti();
+        loadWinners();
+    </script>
+</body>
+</html>

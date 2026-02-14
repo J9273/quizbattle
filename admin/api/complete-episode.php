@@ -52,7 +52,8 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Episode completed successfully',
-        'teams_deleted' => $teams_deleted
+        'teams_deleted' => $teams_deleted,
+        'redirect_url' => "/public/podium.html?episode_id={$episode_id}"
     ]);
     
 } catch (PDOException $e) {

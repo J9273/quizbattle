@@ -627,7 +627,7 @@
             }
         });
 
-async function confirmStopEpisode() {
+        async function confirmStopEpisode() {
             const confirmation = confirm(
                 '⚠️ WARNING: This will:\n\n' +
                 '• Mark the episode as COMPLETED\n' +
@@ -668,7 +668,7 @@ async function confirmStopEpisode() {
                     }
                     
                     // Redirect back to join screen or episodes list
-                    window.location.href = '/admin/episodes.php';
+                    window.location.href = data.redirect_url || `/public/podium.html?episode_id=${episodeId}`;
                 } else {
                     alert('❌ Error: ' + (data.error || 'Failed to complete episode'));
                 }
