@@ -43,13 +43,34 @@ try {
         exit;
     }
     
+    // Check if any questions have been answered (game has started)
+    // Check both cutthroat buzzes and multiple choice answers
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as answer_count 
+        FROM (
+            SELECT id FROM buzzes WHERE episode_id = ?
+            UNION ALL
+            SELECT id FROM multiple_choice_answers WHERE episode_id = ?
+        ) as all_answers
+    ");
+    $stmt->execute([$episode_id, $episode_id]);
+    $result = $stmt->fetch();
+    
+    if ($result['answer_count'] > 0) {
+        echo json_encode([
+            'success' => false, 
+            'error' => 'Cannot join - game has already started. Please wait for the next episode.'
+        ]);
+        exit;
+    }
+    
     // Check if team already exists
     $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? AND team_name = ?");
     $stmt->execute([$episode_id, $team_name]);
     $team = $stmt->fetch();
     
     if ($team) {
-        // Team exists, return existing data
+        // Team exists, allow rejoin since no answers have been submitted yet
         echo json_encode([
             'success' => true,
             'team_id' => $team['id'],
@@ -57,24 +78,25 @@ try {
             'points' => $team['points'],
             'message' => 'Rejoined existing team'
         ]);
-    } else {
-        // Create new team
-        $stmt = $conn->prepare("
-            INSERT INTO teams (episode_id, team_name, points, position) 
-            VALUES (?, ?, 0, (SELECT COALESCE(MAX(position), 0) + 1 FROM teams WHERE episode_id = ?))
-            RETURNING id, team_name, points
-        ");
-        $stmt->execute([$episode_id, $team_name, $episode_id]);
-        $new_team = $stmt->fetch();
-        
-        echo json_encode([
-            'success' => true,
-            'team_id' => $new_team['id'],
-            'team_name' => $new_team['team_name'],
-            'points' => $new_team['points'],
-            'message' => 'Team created successfully'
-        ]);
+        exit;
     }
+    
+    // Create new team (only if no answers submitted yet)
+    $stmt = $conn->prepare("
+        INSERT INTO teams (episode_id, team_name, points, position) 
+        VALUES (?, ?, 0, (SELECT COALESCE(MAX(position), 0) + 1 FROM teams WHERE episode_id = ?))
+        RETURNING id, team_name, points
+    ");
+    $stmt->execute([$episode_id, $team_name, $episode_id]);
+    $new_team = $stmt->fetch();
+    
+    echo json_encode([
+        'success' => true,
+        'team_id' => $new_team['id'],
+        'team_name' => $new_team['team_name'],
+        'points' => $new_team['points'],
+        'message' => 'Team created successfully'
+    ]);
     
 } catch (PDOException $e) {
     error_log("Join episode error: " . $e->getMessage());
