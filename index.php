@@ -38,8 +38,9 @@
 /* Button Base */
 .join-btn {
     position: relative;
-    padding: 18px 45px;
-    font-size: 22px;
+/*    padding: 18px 45px;	*/
+	padding: 2vw 3.5vw;
+    font-size: 3vw;
     font-weight: bold;
     color: white;
     background: linear-gradient(45deg, #ff0055, #ff9900, #00ccff, #9900ff);
@@ -88,8 +89,10 @@
     transform: scale(0.95);
 }		
 		
-#span { 
-	font-size: 6vw;		
+A { 
+	color: bisque;
+	text-decoration: none;
+/*	font-size: 3vw;		*/
 		}
 		
     /* Optional: Improve mobile behavior */
@@ -110,7 +113,7 @@
     alt="Multi-user quiz app"
     >
 </picture>
-	<button a href="https://quizbattle-9ls0.onrender.com/public/player.html" class="join-btn">Join Game</button>
+	<button class="join-btn"><a href="https://quizbattle-9ls0.onrender.com/public/player.html">Join Game</a></button>
 
 </body>
 </html>
