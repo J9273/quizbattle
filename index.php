@@ -110,7 +110,7 @@
     alt="Multi-user quiz app"
     >
 </picture>
-	<button class="join-btn">Join Game</button>
+	<button a href="http://quizbattle-9ls0.onrender.com/public/player.html" class="join-btn">Join Game</button>
 
 </body>
 </html>
