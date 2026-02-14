@@ -64,6 +64,10 @@
                             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                         Refresh Questions
                     </button>
+                    <button onclick="confirmStopEpisode()" 
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold">
+                        🛑 Stop Episode
+                    </button>
                 </div>
             </div>
         </div>
@@ -574,6 +578,57 @@
                 clearInterval(pollInterval);
             }
         });
+
+async function confirmStopEpisode() {
+            const confirmation = confirm(
+                '⚠️ WARNING: This will:\n\n' +
+                '• Mark the episode as COMPLETED\n' +
+                '• Delete ALL teams and scores\n' +
+                '• Clear all answers and buzzes\n' +
+                '• Disconnect all players\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Are you sure you want to stop this episode?'
+            );
+            
+            if (!confirmation) return;
+            
+            // Double confirmation
+            const doubleCheck = confirm('Are you ABSOLUTELY sure? This will delete all data for this episode!');
+            if (!doubleCheck) return;
+            
+            await stopEpisode();
+        }
+
+        async function stopEpisode() {
+            try {
+                const response = await fetch('/admin/api/complete-episode.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episode_id: episodeId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ Episode completed successfully!\n\n${data.teams_deleted} teams deleted.`);
+                    
+                    // Stop polling
+                    if (pollInterval) {
+                        clearInterval(pollInterval);
+                    }
+                    
+                    // Redirect back to join screen or episodes list
+                    window.location.href = '/admin/episodes.php';
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to complete episode'));
+                }
+            } catch (error) {
+                console.error('Error stopping episode:', error);
+                alert('❌ Connection error. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
