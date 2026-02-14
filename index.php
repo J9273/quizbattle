@@ -21,8 +21,8 @@
   <img 
     src="images/banner-desktop.webp"
     alt="Multi-user quiz app competition leaderboard"
-    width="1920"
-    height="1080"
+    width="100%"
+    height="auto"
     loading="eager"
     decoding="async"
     style="width:100%; height:auto;">
