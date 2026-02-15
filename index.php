@@ -174,8 +174,8 @@ footer {
     /* Optional: Improve mobile behavior */
     @media (max-width: 480px) {
         img {
-            width: 150px;
-            height: 150px;
+            width: 60vw;
+            height: 60vw;
         }
 		footer {
 			font-size: 5vw;
