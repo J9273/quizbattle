@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play - Quiz Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes slide-in {
+            0% { opacity: 0; transform: translateX(-50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .slide-in {
+            animation: slide-in 0.6s ease-out forwards;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        🎮 Quiz Battle
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/public/player.html" class="text-gray-700 hover:text-purple-600 font-medium">Join Game</a>
+                    <a href="/public/host.html" class="text-gray-700 hover:text-purple-600 font-medium">Host</a>
+                    <a href="/admin/index.php" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium">
+                        Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="float-animation inline-block text-8xl mb-6">🎯</div>
+            <h1 class="text-5xl md:text-6xl font-bold mb-6">How to Play Quiz Battle</h1>
+            <p class="text-xl md:text-2xl max-w-3xl mx-auto opacity-90">
+                The ultimate trivia game for teams! Compete in real-time with friends, family, or colleagues.
+            </p>
+        </div>
+        <div class="absolute top-0 right-0 opacity-10">
+            <div class="text-9xl">🏆</div>
+        </div>
+        <div class="absolute bottom-0 left-0 opacity-10">
+            <div class="text-9xl">⚡</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        <!-- Game Modes -->
+        <section class="mb-20">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Choose Your Game Mode</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <!-- CutThroat Mode -->
+                <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border-4 border-purple-200">
+                    <div class="text-6xl mb-4 text-center">🎯</div>
+                    <h3 class="text-3xl font-bold text-purple-600 mb-4 text-center">CutThroat Mode</h3>
+                    <p class="text-gray-600 mb-6 text-lg">
+                        Fast-paced competitive trivia where speed matters! First team to buzz in with the correct answer wins the points.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">⚡</span>
+                            <div>
+                                <strong class="text-gray-800">Quick Thinking:</strong>
+                                <span class="text-gray-600"> Type your answer and buzz in fast</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">🏃</span>
+                            <div>
+                                <strong class="text-gray-800">Speed Matters:</strong>
+                                <span class="text-gray-600"> First correct answer gets the points</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">💡</span>
+                            <div>
+                                <strong class="text-gray-800">Knowledge Test:</strong>
+                                <span class="text-gray-600"> Perfect for trivia experts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multiple Choice Mode -->
+                <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border-4 border-blue-200">
+                    <div class="text-6xl mb-4 text-center">✓</div>
+                    <h3 class="text-3xl font-bold text-blue-600 mb-4 text-center">Multiple Choice Mode</h3>
+                    <p class="text-gray-600 mb-6 text-lg">
+                        Everyone can answer! Select from A, B, C, or D. All correct answers earn points at the same time.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">🎲</span>
+                            <div>
+                                <strong class="text-gray-800">Fair Play:</strong>
+                                <span class="text-gray-600"> Everyone gets a chance to answer</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">👥</span>
+                            <div>
+                                <strong class="text-gray-800">Team Friendly:</strong>
+                                <span class="text-gray-600"> No need to be fastest</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">🎯</span>
+                            <div>
+                                <strong class="text-gray-800">Strategic:</strong>
+                                <span class="text-gray-600"> Pick the best answer from choices</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- For Players -->
+        <section class="mb-20">
+            <div class="text-center mb-12">
+                <span class="text-6xl mb-4 inline-block">📱</span>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">For Players</h2>
+                <p class="text-xl text-gray-600">Join a game and compete for the top spot!</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+                <div class="space-y-8">
+                    
+                    <!-- Step 1 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Go to the Player Page</h3>
+                            <p class="text-gray-600 text-lg mb-3">
+                                Open <a href="/public/player.html" class="text-purple-600 hover:underline font-medium">player.html</a> on your phone, tablet, or computer.
+                            </p>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <code class="text-purple-700">https://yoursite.com/public/player.html</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Select Your Episode</h3>
+                            <p class="text-gray-600 text-lg">
+                                Choose from the dropdown list of active episodes. You'll see the episode name and date.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Enter Your Team Name</h3>
+                            <p class="text-gray-600 text-lg mb-3">
+                                Pick a creative team name (up to 50 characters). Make it memorable!
+                            </p>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="bg-green-50 p-3 rounded border border-green-200">
+                                    <div class="text-green-700">✅ Good names:</div>
+                                    <div class="text-gray-600">The Brain Trust, Quiz Wizards, Team Awesome</div>
+                                </div>
+                                <div class="bg-red-50 p-3 rounded border border-red-200">
+                                    <div class="text-red-700">❌ Avoid:</div>
+                                    <div class="text-gray-600">Team 1, Test, asdfgh</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            4
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Wait for Questions</h3>
+                            <p class="text-gray-600 text-lg">
+                                You'll see a waiting screen until the host displays the first question. Stay ready!
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            5
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Answer the Questions</h3>
+                            <div class="space-y-4">
+                                <div class="bg-purple-50 p-4 rounded-lg">
+                                    <div class="font-bold text-purple-800 mb-2">🎯 CutThroat Mode:</div>
+                                    <ul class="text-gray-700 space-y-1 ml-4">
+                                        <li>• Type your answer in the text box</li>
+                                        <li>• Click "🔔 BUZZ IN!" as fast as you can</li>
+                                        <li>• First correct answer wins the points</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="font-bold text-blue-800 mb-2">✓ Multiple Choice Mode:</div>
+                                    <ul class="text-gray-700 space-y-1 ml-4">
+                                        <li>• Tap your answer choice (A, B, C, or D)</li>
+                                        <li>• Click "Submit Answer"</li>
+                                        <li>• Everyone who gets it right earns points</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 6 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            6
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Track Your Score</h3>
+                            <p class="text-gray-600 text-lg">
+                                Your points and ranking are displayed at the top and in the live scoreboard. Watch your position climb!
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- For Hosts -->
+        <section class="mb-20">
+            <div class="text-center mb-12">
+                <span class="text-6xl mb-4 inline-block">🎤</span>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">For Hosts</h2>
+                <p class="text-xl text-gray-600">Control the game and keep the energy high!</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+                <div class="space-y-8">
+                    
+                    <!-- Host Step 1 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Open the Host Panel</h3>
+                            <p class="text-gray-600 text-lg mb-3">
+                                Navigate to <a href="/public/host.html" class="text-purple-600 hover:underline font-medium">host.html</a> on a computer or large tablet.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Host Step 2 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Select Your Episode</h3>
+                            <p class="text-gray-600 text-lg">
+                                Choose the episode you want to host from the dropdown. Make sure it's set to "Active" status.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Host Step 3 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Monitor Player Join</h3>
+                            <p class="text-gray-600 text-lg">
+                                Watch the player count increase as teams join. You'll see them appear in the scoreboard.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Host Step 4 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            4
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Select and Display Questions</h3>
+                            <div class="text-gray-600 text-lg space-y-3">
+                                <p>Use the theme filter to find questions by category (Geography, History, Science, etc.)</p>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <ol class="space-y-2 ml-4">
+                                        <li>1. Click the question dropdown to select</li>
+                                        <li>2. Preview the question and answer</li>
+                                        <li>3. Click "📺 Display Question" to show it to players</li>
+                                        <li>4. Wait for answers to come in</li>
+                                        <li>5. Click "👁️ Reveal Answer" when ready</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Host Step 5 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            5
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Award Points (CutThroat Only)</h3>
+                            <p class="text-gray-600 text-lg mb-3">
+                                In CutThroat mode, you'll see buzzes come in. Click "✓ Award Points" on the correct answer.
+                            </p>
+                            <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                                <p class="text-yellow-800">
+                                    💡 <strong>Tip:</strong> Multiple Choice awards points automatically to all correct answers!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Host Step 6 -->
+                    <div class="flex gap-6 items-start slide-in">
+                        <div class="step-number text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                            6
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">End the Episode</h3>
+                            <p class="text-gray-600 text-lg mb-3">
+                                When the quiz is over, click "🛑 Stop Episode" to see the winners' podium celebration!
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Points System -->
+        <section class="mb-20">
+            <div class="text-center mb-12">
+                <span class="text-6xl mb-4 inline-block">🏆</span>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Points System</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="card-hover bg-gradient-to-br from-green-400 to-green-600 rounded-2xl shadow-xl p-8 text-white text-center">
+                    <div class="text-5xl mb-4">😊</div>
+                    <h3 class="text-3xl font-bold mb-2">Easy</h3>
+                    <p class="text-6xl font-bold mb-2">1</p>
+                    <p class="text-xl">point</p>
+                </div>
+
+                <div class="card-hover bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-xl p-8 text-white text-center">
+                    <div class="text-5xl mb-4">🤔</div>
+                    <h3 class="text-3xl font-bold mb-2">Medium</h3>
+                    <p class="text-6xl font-bold mb-2">5</p>
+                    <p class="text-xl">points</p>
+                </div>
+
+                <div class="card-hover bg-gradient-to-br from-red-500 to-purple-600 rounded-2xl shadow-xl p-8 text-white text-center">
+                    <div class="text-5xl mb-4">🔥</div>
+                    <h3 class="text-3xl font-bold mb-2">Hard</h3>
+                    <p class="text-6xl font-bold mb-2">10</p>
+                    <p class="text-xl">points</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tips & Tricks -->
+        <section class="mb-20">
+            <div class="text-center mb-12">
+                <span class="text-6xl mb-4 inline-block">💡</span>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Tips & Tricks</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">🎯 For Players</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li>• Join before the first question is asked</li>
+                        <li>• Keep your device charged and connected</li>
+                        <li>• In CutThroat: Speed matters, but accuracy matters more!</li>
+                        <li>• In Multiple Choice: Take a moment to read all options</li>
+                        <li>• Watch the scoreboard to track your position</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">🎤 For Hosts</h3>
+                    <ul class="space-y-2 text-gray-600">
+                        <li>• Test your setup before players join</li>
+                        <li>• Use the theme filter to organize question rounds</li>
+                        <li>• Read questions clearly and give time to answer</li>
+                        <li>• Keep energy high with commentary between questions</li>
+                        <li>• Use the "Quick Award" for bonus points</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="mb-20">
+            <div class="text-center mb-12">
+                <span class="text-6xl mb-4 inline-block">❓</span>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Frequently Asked Questions</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+                <div class="border-b pb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Can I join after the game starts?</h3>
+                    <p class="text-gray-600">No, once the first question has been answered, new teams cannot join. This keeps the game fair for everyone.</p>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">What if my device disconnects?</h3>
+                    <p class="text-gray-600">Just refresh the page and rejoin with the same team name. Your points and position will be saved!</p>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Can one person be on multiple teams?</h3>
+                    <p class="text-gray-600">Technically yes, but it's more fun to have one team per person or group. Keep it fair!</p>
+                </div>
+
+                <div class="border-b pb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">How does Multiple Choice scoring work?</h3>
+                    <p class="text-gray-600">All teams who select the correct answer get points automatically. No need for the host to manually award points!</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">What happens at the end of the game?</h3>
+                    <p class="text-gray-600">When the host stops the episode, you'll see an animated podium celebration showing the top 3 winners and full rankings!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="text-center">
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl shadow-2xl p-12 text-white">
+                <h2 class="text-4xl font-bold mb-4">Ready to Play?</h2>
+                <p class="text-xl mb-8 opacity-90">Join a game or start hosting your own quiz battle!</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/public/player.html" class="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg text-xl transition-all transform hover:scale-105">
+                        Join as Player
+                    </a>
+                    <a href="/public/host.html" class="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-bold py-4 px-8 rounded-lg text-xl transition-all transform hover:scale-105">
+                        Start Hosting
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-lg">🎮 Quiz Battle - The Ultimate Team Trivia Game</p>
+            <p class="text-gray-400 mt-2">Have fun and may the best team win! 🏆</p>
+        </div>
+        2026 &copy; John Ward
+    </footer>
+
+</body>
+</html>
