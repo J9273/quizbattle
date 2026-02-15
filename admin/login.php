@@ -47,6 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Quiz Battle</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .footer {
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		text-align: center;
+		font-size: 1vw;
+	    color: #8C8C8C;
+		}
+        </style>    
 </head>
 <body class="bg-gradient-to-br from-blue-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
@@ -93,5 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="text-red-600 mt-2">⚠️ Change password after first login!</p>
         </div>
     </div>
+    <span class="footer">2026 &copy; John Ward</span>
 </body>
 </html>
