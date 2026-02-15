@@ -180,7 +180,14 @@ footer {
 		footer {
 			font-size: 5vw;
 		}
+
+        .join-btn {
+            font-size: 5vw;
+            padding: 3vw 6vw;
+        }
+
     }
+}
 		
 	
 </style>
@@ -197,13 +204,12 @@ footer {
         <a href="#">Logout</a>
     </div>
 </div>
-	<picture>
-     
-  <img 
-    src="images/banner.png"
-    alt="Multi-user quiz app"
-    >
-</picture>
+	<picture>     
+        <img 
+        src="images/banner.png"
+        alt="Multi-user quiz app"
+        >
+    </picture>
 	<button class="join-btn"><a href="https://quizbattle-9ls0.onrender.com/public/player.html">Join Game</a></button>
 
 	<footer>
