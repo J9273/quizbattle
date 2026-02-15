@@ -45,6 +45,16 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Quiz Battle</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .footer {
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+		text-align: center;
+		font-size: 1vw;
+	    color: #8C8C8C;
+		}
+        </style>
 </head>
 <body class="bg-gray-100">
     
@@ -196,5 +206,6 @@ try {
         </div>
 
     </div>
+    <span class="footer">2026 &copy; John Ward</span>
 </body>
 </html>
