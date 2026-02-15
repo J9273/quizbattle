@@ -201,7 +201,7 @@ footer {
         <a href="#" data-url="https://quizbattle-9ls0.onrender.com">Home</a>
         <a href="#" data-url="https://quizbattle-9ls0.onrender.com/admin/login.php">Admin</a>
         <a href="#" data-url="https://quizbattle-9ls0.onrender.com/public/player.html">Join Game</a>
-        <a href="#">Logout</a>
+        <a href="#" data-url="https://quizbattle-9ls0.onrender.com/public/how-to-play.html">How To</a>
     </div>
 </div>
 	<picture>     
