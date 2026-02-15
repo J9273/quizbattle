@@ -99,8 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="mt-6 text-center text-sm text-gray-600">
-            <p>Default credentials: admin / admin123</p>
-            <p class="text-red-600 mt-2">⚠️ Change password after first login!</p>
+            
         </div>
     </div>
     <span class="footer">2026 &copy; John Ward</span>
