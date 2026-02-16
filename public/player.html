@@ -19,6 +19,20 @@
         }
         .buzzing { animation: buzz-animation 0.3s ease-in-out; }
         
+        @keyframes timer-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes timer-warning {
+            0%, 100% { background: linear-gradient(to right, rgb(239, 68, 68), rgb(249, 115, 22)); }
+            50% { background: linear-gradient(to right, rgb(220, 38, 38), rgb(234, 88, 12)); }
+        }
+        
+        .timer-warning {
+            animation: timer-warning 0.5s ease-in-out infinite, timer-pulse 0.5s ease-in-out infinite;
+        }
+        
         .choice-button {
             transition: all 0.2s ease;
         }
@@ -31,15 +45,14 @@
             color: white;
             border-color: rgb(29, 78, 216);
         }
-
-        .footer {
-		position: fixed;
-		bottom: 0;
-		width: 100%;
-		text-align: center;
-		font-size: 1vw;
-	    color: #8C8C8C;
-		}
+        .choice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .choice-button:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 min-h-screen">
@@ -48,14 +61,13 @@
     <div id="status-bar" class="fixed top-0 left-0 right-0 bg-green-500 text-white px-4 py-2 text-center font-bold z-50">
         Connected (Polling Mode)
     </div>
+
     <!-- Join Screen -->
     <div id="join-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">🎮 Quiz Battle</h1>
             <p class="text-center text-gray-600 mb-8">Join an Episode</p>
-            <p>
-                <a href="/public/how-to-play.html" class="text-gray-700 hover:text-purple-600">How to Play</a>
-            </p>
+
             <div id="join-error" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
                 <p id="join-error-text"></p>
             </div>
@@ -159,6 +171,14 @@
 
                     <!-- Multiple Choice: A/B/C/D Buttons -->
                     <div id="mc-form" class="hidden">
+                        <!-- Timer Display -->
+                        <div class="mb-6 text-center">
+                            <div id="mc-timer" class="inline-block bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full px-8 py-4 text-4xl font-bold shadow-lg">
+                                <span id="mc-timer-value">10</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 font-medium">seconds remaining</p>
+                        </div>
+                        
                         <p class="text-sm font-medium text-gray-700 mb-4">Select your answer:</p>
                         <div class="grid grid-cols-1 gap-4 mb-6">
                             <button type="button" 
@@ -219,7 +239,6 @@
             </div>
         </div>
     </div>
-    <span class="footer">2026 &copy; John Ward</span>
 
     <script>
         // NOTE: This version uses HTTP polling instead of WebSocket
@@ -230,6 +249,8 @@
         let pollInterval = null;
         let currentQuestionId = null;
         let selectedChoice = null;
+        let mcTimerInterval = null;
+        let mcTimeRemaining = 10;
 
         // Load available episodes on page load
         async function loadEpisodes() {
@@ -353,6 +374,9 @@
             currentQuestionId = question.id;
             selectedChoice = null;
             
+            // Stop any existing timer
+            stopMCTimer();
+            
             document.getElementById('waiting-state').classList.add('hidden');
             document.getElementById('question-state').classList.remove('hidden');
             document.getElementById('answer-section').classList.add('hidden');
@@ -387,8 +411,12 @@
                 // Reset button states
                 document.querySelectorAll('.choice-button').forEach(btn => {
                     btn.classList.remove('selected');
+                    btn.disabled = false;
                 });
                 document.getElementById('mc-submit-button').disabled = true;
+                
+                // Start the 10 second timer
+                startMCTimer();
                 
             } else {
                 // CutThroat
@@ -398,7 +426,60 @@
             }
         }
 
+        function startMCTimer() {
+            mcTimeRemaining = 10;
+            const timerDisplay = document.getElementById('mc-timer-value');
+            const timerElement = document.getElementById('mc-timer');
+            
+            timerDisplay.textContent = mcTimeRemaining;
+            timerElement.classList.remove('timer-warning');
+            
+            mcTimerInterval = setInterval(() => {
+                mcTimeRemaining--;
+                timerDisplay.textContent = mcTimeRemaining;
+                
+                // Warning animation when 3 seconds or less
+                if (mcTimeRemaining <= 3) {
+                    timerElement.classList.add('timer-warning');
+                }
+                
+                if (mcTimeRemaining <= 0) {
+                    stopMCTimer();
+                    timeExpired();
+                }
+            }, 1000);
+        }
+
+        function stopMCTimer() {
+            if (mcTimerInterval) {
+                clearInterval(mcTimerInterval);
+                mcTimerInterval = null;
+            }
+        }
+
+        function timeExpired() {
+            // Disable all choice buttons
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Disable submit button
+            document.getElementById('mc-submit-button').disabled = true;
+            document.getElementById('mc-submit-button').textContent = 'Time Expired';
+            
+            // Show time expired message
+            const timerDisplay = document.getElementById('mc-timer-value');
+            timerDisplay.textContent = '0';
+            timerDisplay.parentElement.classList.remove('timer-warning');
+            timerDisplay.parentElement.classList.add('bg-gray-400');
+        }
+
         function selectChoice(choice) {
+            // Don't allow selection if time has expired
+            if (mcTimeRemaining <= 0) {
+                return;
+            }
+            
             selectedChoice = choice;
             
             // Update button styles
@@ -412,7 +493,10 @@
         }
 
         async function submitMCAnswer() {
-            if (!selectedChoice) return;
+            if (!selectedChoice || mcTimeRemaining <= 0) return;
+            
+            // Stop the timer
+            stopMCTimer();
             
             try {
                 const response = await fetch('/admin/api/submit-mc-answer.php', {
@@ -437,6 +521,9 @@
         }
 
         function revealAnswer(answer) {
+            // Stop the timer when answer is revealed
+            stopMCTimer();
+            
             document.getElementById('q-answer').textContent = answer;
             document.getElementById('answer-section').classList.remove('hidden');
             document.getElementById('buzz-form').classList.add('hidden');
@@ -517,6 +604,9 @@
         window.addEventListener('beforeunload', () => {
             if (pollInterval) {
                 clearInterval(pollInterval);
+            }
+            if (mcTimerInterval) {
+                clearInterval(mcTimerInterval);
             }
         });
     </script>
