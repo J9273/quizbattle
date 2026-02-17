@@ -33,18 +33,16 @@ try {
     // Start transaction
     $conn->beginTransaction();
     
-    // Delete all teams for this episode (cascades to buzzes and mc_answers due to foreign keys)
-    $stmt = $conn->prepare("DELETE FROM teams WHERE episode_id = ?");
-    $stmt->execute([$episode_id]);
-    $teams_deleted = $stmt->rowCount();
-    
-    // Clear episode state
-    $stmt = $conn->prepare("DELETE FROM episode_state WHERE episode_id = ?");
-    $stmt->execute([$episode_id]);
-    
-    // Mark episode as completed
+    // DO NOT delete teams - keep them for the podium display and records
+    // Just mark the episode as completed
     $stmt = $conn->prepare("UPDATE quiz_episodes SET status = 'completed' WHERE id = ?");
     $stmt->execute([$episode_id]);
+    
+    // Get team count for response
+    $stmt = $conn->prepare("SELECT COUNT(*) as team_count FROM teams WHERE episode_id = ?");
+    $stmt->execute([$episode_id]);
+    $result = $stmt->fetch();
+    $team_count = $result['team_count'];
     
     // Commit transaction
     $conn->commit();
@@ -52,7 +50,7 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Episode completed successfully',
-        'teams_deleted' => $teams_deleted,
+        'team_count' => $team_count,
         'redirect_url' => "/public/podium.html?episode_id={$episode_id}"
     ]);
     
