@@ -2,10 +2,9 @@
 /**
  * Submit Multiple Choice Answer API
  * Records a team's multiple choice answer
+ * FIRST CORRECT ANSWER ONLY - subsequent correct answers get 0 points
  */
-
 require_once '../../includes/config-render.php';
-
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -14,7 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-
 $episode_id = isset($input['episode_id']) ? (int)$input['episode_id'] : 0;
 $team_id = isset($input['team_id']) ? (int)$input['team_id'] : 0;
 $question_id = isset($input['question_id']) ? (int)$input['question_id'] : 0;
@@ -61,6 +59,19 @@ try {
     $points_config = $stmt->fetch();
     $points = $points_config ? $points_config['points'] : 0;
     
+    // CRITICAL: Check if anyone has already answered CORRECTLY for this question
+    // Only the FIRST correct answer gets points
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as correct_count 
+        FROM multiple_choice_answers 
+        WHERE episode_id = ? 
+        AND question_id = ? 
+        AND is_correct = true
+    ");
+    $stmt->execute([$episode_id, $question_id]);
+    $result = $stmt->fetch();
+    $someone_already_correct = ($result['correct_count'] > 0);
+    
     // Store the answer
     $stmt = $conn->prepare("
         INSERT INTO multiple_choice_answers (episode_id, team_id, question_id, selected_choice, is_correct, answered_at)
@@ -75,12 +86,17 @@ try {
     $stmt->execute([$episode_id, $team_id, $question_id, $selected_choice, $is_correct ? 't' : 'f']);
     $answer = $stmt->fetch();
     
-    // Award points immediately if correct
+    // Award points ONLY if correct AND first correct answer
     $points_awarded = 0;
-    if ($is_correct) {
+    if ($is_correct && !$someone_already_correct) {
         $stmt = $conn->prepare("UPDATE teams SET points = points + ? WHERE id = ?");
         $stmt->execute([$points, $team_id]);
         $points_awarded = $points;
+        $message = 'Correct! You got it first! +' . $points . ' points';
+    } elseif ($is_correct && $someone_already_correct) {
+        $message = 'Correct answer, but someone beat you to it! No points awarded.';
+    } else {
+        $message = 'Incorrect answer';
     }
     
     echo json_encode([
@@ -89,7 +105,8 @@ try {
         'is_correct' => $is_correct,
         'correct_choice' => $correct_choice,
         'points_awarded' => $points_awarded,
-        'message' => 'Answer submitted successfully'
+        'was_first' => ($is_correct && !$someone_already_correct),
+        'message' => $message
     ]);
     
 } catch (PDOException $e) {
@@ -99,3 +116,4 @@ try {
         'error' => 'Database error'
     ]);
 }
+?>

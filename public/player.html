@@ -513,7 +513,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showBuzzConfirmation();
+                    showBuzzConfirmation(data);
                 }
             } catch (error) {
                 console.error('Submit error:', error);
@@ -589,8 +589,42 @@
             }
         });
 
-        function showBuzzConfirmation() {
-            document.getElementById('buzz-confirmation').classList.remove('hidden');
+        function showBuzzConfirmation(data) {
+            const confirmation = document.getElementById('buzz-confirmation');
+            
+            // Update message based on whether they were first (for MC only)
+            if (data && data.message) {
+                let icon = '✅';
+                let className = 'bg-green-100 border-green-500';
+                let textClass = 'text-green-800';
+                
+                if (data.was_first === false && data.is_correct) {
+                    // Correct but not first
+                    icon = '⏱️';
+                    className = 'bg-yellow-100 border-yellow-500';
+                    textClass = 'text-yellow-800';
+                } else if (!data.is_correct) {
+                    // Incorrect
+                    icon = '❌';
+                    className = 'bg-red-100 border-red-500';
+                    textClass = 'text-red-800';
+                }
+                
+                confirmation.className = `mt-4 border-l-4 p-4 rounded ${className}`;
+                confirmation.innerHTML = `
+                    <p class="${textClass} font-bold">${icon} ${data.message}</p>
+                    ${data.points_awarded > 0 ? `<p class="${textClass} text-sm mt-1">+${data.points_awarded} points earned!</p>` : ''}
+                `;
+            } else {
+                // Default for CutThroat
+                confirmation.className = 'mt-4 bg-green-100 border-l-4 border-green-500 p-4 rounded';
+                confirmation.innerHTML = `
+                    <p class="text-green-800 font-bold">✅ Your answer has been submitted!</p>
+                    <p class="text-green-700 text-sm mt-1">Waiting for host to reveal the answer...</p>
+                `;
+            }
+            
+            confirmation.classList.remove('hidden');
             document.getElementById('buzz-form').classList.add('hidden');
             document.getElementById('mc-form').classList.add('hidden');
         }
