@@ -27,7 +27,7 @@ if ($database_url) {
     define('DB_USER', 'postgres');
   //  define('DB_PASS', 'SKckt79lkambNOiSbczDJovxb3rSzdvF');
     define('DB_PASS', 'HpH1n6QgjLJg1BPJZP0xmBY2E36ugPFO');
-    define('DB_NAME', 'quiz_battle');
+    define('DB_NAME', 'quizdb_f20w');
     define('DB_PORT', 5432);
     define('DB_TYPE', 'pgsql');
 }
