@@ -6,10 +6,11 @@ RUN apt-get update && apt-get install -y \
     curl \
     zip \
     unzip \
-    libpq-dev
+    libpq-dev \
+    default-mysql-client
 
-# Install PostgreSQL extension for PHP
-RUN docker-php-ext-install pdo pdo_pgsql
+# Install MySQL extension for PHP (removed pdo_pgsql)
+RUN docker-php-ext-install pdo pdo_mysql
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
