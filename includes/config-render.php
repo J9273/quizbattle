@@ -45,8 +45,11 @@ $conn = new PDO($dsn, DB_USER, DB_PASS, [
     $conn->exec("SET timezone = 'UTC'");
     
 } catch(PDOException $e) {
+ //   error_log("Database connection failed: " . $e->getMessage());
+ //   die("Connection failed. Please check server logs.");
     error_log("Database connection failed: " . $e->getMessage());
-    die("Connection failed. Please check server logs.");
+    die("Connection failed: " . $e->getMessage()); // ← temporary, remove after fixing!
+
 }
 
 // ===== APPLICATION SETTINGS =====
