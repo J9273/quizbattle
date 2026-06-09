@@ -25,7 +25,8 @@ if ($database_url) {
     // Local development fallback
     define('DB_HOST', 'localhost');
     define('DB_USER', 'postgres');
-    define('DB_PASS', 'SKckt79lkambNOiSbczDJovxb3rSzdvF');
+  //  define('DB_PASS', 'SKckt79lkambNOiSbczDJovxb3rSzdvF');
+    define('DB_PASS', 'zhotSVtMOpd8UrMihgdYrwS2g6e68vzd');
     define('DB_NAME', 'quiz_battle');
     define('DB_PORT', 5432);
     define('DB_TYPE', 'pgsql');
