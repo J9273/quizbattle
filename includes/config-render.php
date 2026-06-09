@@ -19,8 +19,8 @@ if ($database_url) {
     define('DB_USER', $db['user']);
     define('DB_PASS', $db['pass']);
     define('DB_NAME', ltrim($db['path'], '/'));
-    define('DB_PORT', $db['port'] ?? 5432);
-    define('DB_TYPE', 'pgsql');
+    define('DB_PORT', $db['port'] ?? 3306);
+    define('DB_TYPE', 'mysql');
 } else {
     // Local development fallback
     define('DB_HOST', 'localhost');
@@ -28,8 +28,8 @@ if ($database_url) {
   //  define('DB_PASS', 'SKckt79lkambNOiSbczDJovxb3rSzdvF');
     define('DB_PASS', 'HpH1n6QgjLJg1BPJZP0xmBY2E36ugPFO');
     define('DB_NAME', 'quizdb_f20w');
-    define('DB_PORT', 5432);
-    define('DB_TYPE', 'pgsql');
+    define('DB_PORT', 3306);
+    define('DB_TYPE', 'mysql');
 }
 
 // Create PDO connection
