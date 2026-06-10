@@ -58,12 +58,11 @@ try {
     // First, check if buzzes table exists, if not create it
     try {
         $stmt = $conn->prepare("
-            INSERT INTO quiz_buzzes (episode_id, team_id, question_id, answer, buzzed_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            RETURNING id
-        ");
-        $stmt->execute([$episode_id, $team_id, $question_id, $answer]);
-        $buzz = $stmt->fetch();
+    INSERT INTO quiz_buzzes (episode_id, team_id, question_id, answer, buzzed_at)
+    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+");
+$stmt->execute([$episode_id, $team_id, $question_id, $answer]);
+$buzz_id = $conn->lastInsertId();
         
         echo json_encode([
             'success' => true,
@@ -75,11 +74,11 @@ try {
         // Buzzes table doesn't exist, create it
         if (strpos($e->getMessage(), 'buzzes') !== false) {
             $conn->exec("
-                CREATE TABLE IF NOT EXISTS buzzes (
+                CREATE TABLE IF NOT EXISTS quiz_buzzes (
                     id SERIAL PRIMARY KEY,
                     episode_id INTEGER NOT NULL REFERENCES quiz_episodes(id) ON DELETE CASCADE,
                     team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-                    question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+                    question_id INTEGER NOT NULL REFERENCES quiz_questions(id) ON DELETE CASCADE,
                     answer TEXT NOT NULL,
                     buzzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(episode_id, team_id, question_id)
@@ -88,7 +87,7 @@ try {
             
             // Try again
             $stmt = $conn->prepare("
-                INSERT INTO buzzes (episode_id, team_id, question_id, answer, buzzed_at)
+                INSERT INTO quiz_buzzes (episode_id, team_id, question_id, answer, buzzed_at)
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT (episode_id, team_id, question_id) 
                 DO UPDATE SET answer = EXCLUDED.answer, buzzed_at = CURRENT_TIMESTAMP
