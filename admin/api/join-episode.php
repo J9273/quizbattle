@@ -48,7 +48,7 @@ try {
     $stmt = $conn->prepare("
         SELECT COUNT(*) as answer_count 
         FROM (
-            SELECT id FROM buzzes WHERE episode_id = ?
+            SELECT id FROM quiz_buzzes WHERE episode_id = ?
             UNION ALL
             SELECT id FROM multiple_choice_answers WHERE episode_id = ?
         ) as all_answers
