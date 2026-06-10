@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                     
                     // Check for duplicates
                     $stmt = $conn->prepare("
-                        SELECT id FROM questions 
+                        SELECT id FROM quiz_questions 
                         WHERE LOWER(TRIM(question)) = LOWER(TRIM(?))
                         AND LOWER(TRIM(answer)) = LOWER(TRIM(?))
                     ");
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                             // Update existing question
                             try {
                                 $stmt = $conn->prepare("
-                                    UPDATE questions 
+                                    UPDATE quiz_questions 
                                     SET theme = ?, level = ?, availability = ?, updated_at = CURRENT_TIMESTAMP
                                     WHERE id = ?
                                 ");
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
                     // Insert question
                     try {
                         $stmt = $conn->prepare("
-                            INSERT INTO questions (question, theme, level, answer, availability)
+                            INSERT INTO quiz_questions (question, theme, level, answer, availability)
                             VALUES (?, ?, ?, ?, ?)
                         ");
                         $stmt->execute([$question, $theme, $level, $answer, $availability]);
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv_file'])) {
 }
 
 // Fetch all questions
-$stmt = $conn->query("SELECT * FROM questions ORDER BY created_at DESC");
+$stmt = $conn->query("SELECT * FROM quiz_questions ORDER BY created_at DESC");
 $questions = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
