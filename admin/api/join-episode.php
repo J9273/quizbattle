@@ -65,7 +65,7 @@ try {
     }
     
     // Check if team already exists
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? AND team_name = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? AND team_name = ?");
     $stmt->execute([$episode_id, $team_name]);
     $team = $stmt->fetch();
     
