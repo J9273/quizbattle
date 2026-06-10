@@ -36,7 +36,7 @@ if ($points < 0 || $points > 1000) {
 }
 
 try {
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ? AND episode_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ? AND episode_id = ?");
     $stmt->execute([$team_id, $episode_id]);
     $team = $stmt->fetch();
     
@@ -46,19 +46,19 @@ try {
     }
     
     if ($action === 'add') {
-        $stmt = $conn->prepare("UPDATE teams SET points = points + ? WHERE id = ? AND episode_id = ?");
+        $stmt = $conn->prepare("UPDATE quiz_teams SET points = points + ? WHERE id = ? AND episode_id = ?");
         $stmt->execute([$points, $team_id, $episode_id]);
     } elseif ($action === 'subtract') {
-        $stmt = $conn->prepare("UPDATE teams SET points = GREATEST(0, points - ?) WHERE id = ? AND episode_id = ?");
+        $stmt = $conn->prepare("UPDATE quiz_teams SET points = GREATEST(0, points - ?) WHERE id = ? AND episode_id = ?");
         $stmt->execute([$points, $team_id, $episode_id]);
     } else {
-        $stmt = $conn->prepare("UPDATE teams SET points = ? WHERE id = ? AND episode_id = ?");
+        $stmt = $conn->prepare("UPDATE quiz_teams SET points = ? WHERE id = ? AND episode_id = ?");
         $stmt->execute([$points, $team_id, $episode_id]);
     }
     
     error_log("SCORE CHANGE: Admin changed team $team_id score by $points ($action) in episode $episode_id");
     
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ?");
     $stmt->execute([$team_id]);
     $team = $stmt->fetch();
     
