@@ -5,7 +5,6 @@ require_once '../includes/config-render.php';
 require_once '../includes/auth.php';
 
 requireLogin();
-
 $success = '';
 $error = '';
 
