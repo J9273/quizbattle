@@ -10,7 +10,7 @@ if (!defined('BOOTSTRAP_LOADED')) {
 }
 
 // ===== DATABASE CONNECTION =====
-$database_url = getenv('DATABASE_URL');
+$database_url = getenv('MYSQL_DATABASE_URL');
 
 if ($database_url) {
     $db = parse_url($database_url);
