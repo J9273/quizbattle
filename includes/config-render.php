@@ -31,6 +31,9 @@ if ($database_url) {
     define('DB_TYPE', 'mysql');
 }
 
+$database_url = getenv('DATABASE_URL');
+die("DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
+
 // Create PDO connection
 try {
     $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
