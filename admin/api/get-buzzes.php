@@ -34,9 +34,9 @@ try {
                 q.id as question_id,
                 q.question,
                 q.answer as correct_answer
-            FROM buzzes b
-            JOIN teams t ON b.team_id = t.id
-            JOIN questions q ON b.question_id = q.id
+            FROM quiz_buzzes b
+            JOIN quiz_teams t ON b.team_id = t.id
+            JOIN quiz_questions q ON b.question_id = q.id
             WHERE b.episode_id = ? AND b.question_id = ?
             ORDER BY b.buzzed_at ASC
         ");
@@ -54,9 +54,9 @@ try {
                 q.id as question_id,
                 q.question,
                 q.answer as correct_answer
-            FROM buzzes b
-            JOIN teams t ON b.team_id = t.id
-            JOIN questions q ON b.question_id = q.id
+            FROM quiz_buzzes b
+            JOIN quiz_teams t ON b.team_id = t.id
+            JOIN quiz_questions q ON b.question_id = q.id
             WHERE b.episode_id = ?
             ORDER BY b.buzzed_at DESC
             LIMIT 50
