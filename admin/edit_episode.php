@@ -27,7 +27,7 @@ try {
         exit;
     }
     
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY position ASC");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY position ASC");
     $stmt->execute([$episode_id]);
     $teams = $stmt->fetchAll();
     
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $team_points = (int)$team_data['points'];
                 
                 if (!empty($team_name)) {
-                    $stmt = $conn->prepare("UPDATE teams SET team_name = ?, points = ? WHERE id = ? AND episode_id = ?");
+                    $stmt = $conn->prepare("UPDATE quiz_teams SET team_name = ?, points = ? WHERE id = ? AND episode_id = ?");
                     $stmt->execute([$team_name, $team_points, $team_id, $episode_id]);
                 }
             }
@@ -76,13 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_team_name = trim($new_team_name);
                     if (!empty($new_team_name)) {
                         $max_position++;
-                        $stmt = $conn->prepare("INSERT INTO teams (episode_id, team_name, points, position) VALUES (?, ?, 0, ?)");
+                        $stmt = $conn->prepare("INSERT INTO quiz_teams (episode_id, team_name, points, position) VALUES (?, ?, 0, ?)");
                         $stmt->execute([$episode_id, $new_team_name, $max_position]);
                     }
                 }
                 
                 // Update number of teams
-                $stmt = $conn->prepare("UPDATE quiz_episodes SET number_of_teams = (SELECT COUNT(*) FROM teams WHERE episode_id = ?) WHERE id = ?");
+                $stmt = $conn->prepare("UPDATE quiz_episodes SET number_of_teams = (SELECT COUNT(*) FROM quiz_teams WHERE episode_id = ?) WHERE id = ?");
                 $stmt->execute([$episode_id, $episode_id]);
             }
             
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$episode_id]);
             $episode = $stmt->fetch();
             
-            $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY position ASC");
+            $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY position ASC");
             $stmt->execute([$episode_id]);
             $teams = $stmt->fetchAll();
             
