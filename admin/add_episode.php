@@ -25,31 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Insert episode (no transaction needed since we're only inserting one record)
-            $stmt = $conn->prepare("
-                INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, status) 
-                VALUES (?, ?, ?, ?) 
-                RETURNING id
-            ");
-            $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
-            $episode = $stmt->fetch();
-            $episode_id = $episode['id'];
-            
-            // Teams will be created dynamically as players join via join-episode.php
-            
-            $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
-            $success = "Episode '{$episode_name}' created successfully as {$format_label} format! Teams will be added as players join.";
-
-
             // Remove RETURNING id from the INSERT query
             $stmt = $conn->prepare("INSERT INTO episodes (episode_name, episode_date, quiz_format, status) VALUES (?, ?,?,?)");
             $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
             
             // Get the inserted ID this way instead
             $newId = $conn->lastInsertId();
-
-
-
             
+            // Teams will be created dynamically as players join via join-episode.php
+            
+            $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
+            $success = "Episode '{$episode_name}' created successfully as {$format_label} format! Teams will be added as players join.";
+
             // Clear form
             $_POST = [];
             
