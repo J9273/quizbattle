@@ -28,7 +28,7 @@ if ($database_url) {
 }
 
 // Temporary debug - remove after fixing
-die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
+// die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
 
 
 // Create PDO connection
