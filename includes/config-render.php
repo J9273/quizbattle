@@ -10,9 +10,6 @@ if (!defined('BOOTSTRAP_LOADED')) {
 // ===== DATABASE CONNECTION =====
 // $database_url = getenv('MYSQL_DATABASE_URL');
 
-// Temporary debug - remove after fixing
-die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
-
 if ($database_url) {
     $db = parse_url($database_url);
     define('DB_HOST', $db['host']);
@@ -29,6 +26,10 @@ if ($database_url) {
     define('DB_PORT', 3306);
     define('DB_TYPE', 'mysql');
 }
+
+// Temporary debug - remove after fixing
+die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
+
 
 // Create PDO connection
 try {
