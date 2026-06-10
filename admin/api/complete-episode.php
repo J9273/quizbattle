@@ -39,7 +39,7 @@ try {
     $stmt->execute([$episode_id]);
     
     // Get team count for response
-    $stmt = $conn->prepare("SELECT COUNT(*) as team_count FROM teams WHERE episode_id = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) as team_count FROM quiz_teams WHERE episode_id = ?");
     $stmt->execute([$episode_id]);
     $result = $stmt->fetch();
     $team_count = $result['team_count'];
