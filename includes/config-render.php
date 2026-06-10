@@ -1,7 +1,4 @@
 <?php
-//    var_dump(getenv());
-// die();
-
 /**
  * Database Configuration for Render (MySQL)
  */
@@ -11,7 +8,7 @@ if (!defined('BOOTSTRAP_LOADED')) {
 }
 
 // ===== DATABASE CONNECTION =====
-$database_url = getenv('MYSQL_DATABASE_URL');
+// $database_url = getenv('MYSQL_DATABASE_URL');
 
 // Temporary debug - remove after fixing
 die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
