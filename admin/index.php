@@ -18,7 +18,7 @@ $stats = [
 ];
 
 try {
-    $stmt = $conn->query("SELECT COUNT(*) FROM questions");
+    $stmt = $conn->query("SELECT COUNT(*) FROM quiz_questions");
     $stats['questions'] = $stmt->fetchColumn();
     
     $stmt = $conn->query("SELECT COUNT(*) FROM quiz_episodes");
