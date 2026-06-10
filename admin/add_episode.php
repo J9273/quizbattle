@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // Insert episode (no transaction needed since we're only inserting one record)
             // Remove RETURNING id from the INSERT query
-            $stmt = $conn->prepare("INSERT INTO episodes (episode_name, episode_date, quiz_format, status) VALUES (?, ?,?,?)");
+            $stmt = $conn->prepare("INSERT INTO quiz_episodes (episode_name, episode_date, quiz_format, status) VALUES (?, ?,?,?)");
             $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
             
             // Get the inserted ID this way instead
