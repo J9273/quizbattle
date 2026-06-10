@@ -28,4 +28,4 @@ RUN composer install --no-dev --optimize-autoloader
 EXPOSE 8080
 
 # Start PHP server
-CMD php -S 0.0.0.0:$PORT
+CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
