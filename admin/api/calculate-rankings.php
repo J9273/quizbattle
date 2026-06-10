@@ -26,20 +26,20 @@ if (!$episode_id) {
 
 try {
     // Get all teams ordered by points
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY points DESC, team_name ASC");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY points DESC, team_name ASC");
     $stmt->execute([$episode_id]);
     $teams = $stmt->fetchAll();
     
     // Update positions
     $position = 1;
     foreach ($teams as $team) {
-        $stmt = $conn->prepare("UPDATE teams SET position = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE quiz_teams SET position = ? WHERE id = ?");
         $stmt->execute([$position, $team['id']]);
         $position++;
     }
     
     // Get updated teams
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY position ASC");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY position ASC");
     $stmt->execute([$episode_id]);
     $updated_teams = $stmt->fetchAll();
     
