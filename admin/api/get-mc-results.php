@@ -18,7 +18,7 @@ if (!$episode_id || !$question_id) {
 
 try {
     // Get question details
-    $stmt = $conn->prepare("SELECT * FROM questions WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_questions WHERE id = ?");
     $stmt->execute([$question_id]);
     $question = $stmt->fetch();
     
@@ -33,7 +33,7 @@ try {
     $stmt = $conn->prepare("
         SELECT mca.*, t.team_name, t.points
         FROM multiple_choice_answers mca
-        JOIN teams t ON mca.team_id = t.id
+        JOIN quiz_teams t ON mca.team_id = t.id
         WHERE mca.episode_id = ? AND mca.question_id = ?
         ORDER BY mca.answered_at ASC
     ");
@@ -71,7 +71,7 @@ try {
     // Get all teams to see who hasn't answered
     $stmt = $conn->prepare("
         SELECT t.id, t.team_name
-        FROM teams t
+        FROM quiz_teams t
         WHERE t.episode_id = ?
         AND NOT EXISTS (
             SELECT 1 FROM multiple_choice_answers mca
