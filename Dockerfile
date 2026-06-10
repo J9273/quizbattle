@@ -27,5 +27,7 @@ RUN composer install --no-dev --optimize-autoloader
 # Expose port
 EXPOSE 8080
 
+ENV MYSQL_DATABASE_URL=""
+
 # Start PHP server
 CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
