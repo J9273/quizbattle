@@ -28,7 +28,7 @@ if ($database_url) {
     define('DB_HOST', 'mysql8.unoeuro.com');
     define('DB_USER', 'drawbridge_dk');
     define('DB_PASS', '9gbnx61c94');
-    define('DB_NAME', 'drawbridge._dk_db');
+    define('DB_NAME', 'drawbridge_dk_db');
     define('DB_PORT', 3306);
     define('DB_TYPE', 'mysql');
 }
