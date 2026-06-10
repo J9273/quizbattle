@@ -3,6 +3,10 @@
  * Database Configuration for Render (PostgreSQL)
  */
 
+<?php
+var_dump(getenv());
+die();
+
 // Load bootstrap first (only if not already loaded)
 if (!defined('BOOTSTRAP_LOADED')) {
     require_once __DIR__ . '/bootstrap.php';
