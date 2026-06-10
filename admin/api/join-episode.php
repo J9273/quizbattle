@@ -82,21 +82,20 @@ try {
     }
     
     // Create new team (only if no answers submitted yet)
-    $stmt = $conn->prepare("
-        INSERT INTO teams (episode_id, team_name, points, position) 
-        VALUES (?, ?, 0, (SELECT COALESCE(MAX(position), 0) + 1 FROM teams WHERE episode_id = ?))
-        RETURNING id, team_name, points
-    ");
-    $stmt->execute([$episode_id, $team_name, $episode_id]);
-    $new_team = $stmt->fetch();
-    
-    echo json_encode([
-        'success' => true,
-        'team_id' => $new_team['id'],
-        'team_name' => $new_team['team_name'],
-        'points' => $new_team['points'],
-        'message' => 'Team created successfully'
-    ]);
+$stmt = $conn->prepare("
+    INSERT INTO quiz_teams (episode_id, team_name, points, position) 
+    VALUES (?, ?, 0, (SELECT COALESCE(MAX(position), 0) + 1 FROM quiz_teams t WHERE t.episode_id = ?))
+");
+$stmt->execute([$episode_id, $team_name, $episode_id]);
+$new_team_id = $conn->lastInsertId();
+
+echo json_encode([
+    'success' => true,
+    'team_id' => $new_team_id,
+    'team_name' => $team_name,
+    'points' => 0,
+    'message' => 'Team created successfully'
+]);
     
 } catch (PDOException $e) {
     error_log("Join episode error: " . $e->getMessage());
