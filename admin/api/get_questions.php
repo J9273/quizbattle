@@ -30,7 +30,7 @@ try {
             SELECT q.id, q.question, q.theme, q.level, q.answer, q.question_format,
                    q.choice_a, q.choice_b, q.choice_c, q.choice_d, q.correct_choice,
                    pc.points 
-            FROM questions q
+            FROM quiz_questions q
             LEFT JOIN points_config pc ON q.level = pc.level
             WHERE q.availability = 'available'
             AND (q.question_format = ? OR q.question_format = 'both')
@@ -44,7 +44,7 @@ try {
             SELECT q.id, q.question, q.theme, q.level, q.answer, q.question_format,
                    q.choice_a, q.choice_b, q.choice_c, q.choice_d, q.correct_choice,
                    pc.points 
-            FROM questions q
+            FROM quiz_questions q
             LEFT JOIN points_config pc ON q.level = pc.level
             WHERE q.availability = 'available'
             ORDER BY q.theme, q.level
