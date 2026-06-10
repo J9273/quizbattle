@@ -32,7 +32,7 @@ try {
     $conn->exec("
         CREATE TABLE IF NOT EXISTS episode_state (
             episode_id INTEGER PRIMARY KEY REFERENCES quiz_episodes(id) ON DELETE CASCADE,
-            current_question_id INTEGER REFERENCES questions(id) ON DELETE SET NULL,
+            current_question_id INTEGER REFERENCES quiz_questions(id) ON DELETE SET NULL,
             answer_revealed BOOLEAN DEFAULT FALSE,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -46,7 +46,7 @@ try {
         }
         
         // Verify question exists
-        $stmt = $conn->prepare("SELECT * FROM questions WHERE id = ?");
+        $stmt = $conn->prepare("SELECT * FROM quiz_questions WHERE id = ?");
         $stmt->execute([$question_id]);
         $question = $stmt->fetch();
         
