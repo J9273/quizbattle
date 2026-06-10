@@ -38,6 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
             $success = "Episode '{$episode_name}' created successfully as {$format_label} format! Teams will be added as players join.";
+
+
+            // Remove RETURNING id from the INSERT query
+            $stmt = $conn->prepare("INSERT INTO episodes (episode_name, episode_date, quiz_format, status) VALUES (?, ?,?,?)");
+            $stmt->execute([$episode_name, $episode_date, $quiz_format, $status]);
+            
+            // Get the inserted ID this way instead
+            $newId = $conn->lastInsertId();
+
+
+
             
             // Clear form
             $_POST = [];
