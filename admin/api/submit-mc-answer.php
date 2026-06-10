@@ -31,7 +31,7 @@ if (!in_array($selected_choice, ['A', 'B', 'C', 'D'])) {
 
 try {
     // Verify team belongs to episode
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ? AND episode_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ? AND episode_id = ?");
     $stmt->execute([$team_id, $episode_id]);
     $team = $stmt->fetch();
     
@@ -41,7 +41,7 @@ try {
     }
     
     // Get question and check correct answer
-    $stmt = $conn->prepare("SELECT * FROM questions WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_questions WHERE id = ?");
     $stmt->execute([$question_id]);
     $question = $stmt->fetch();
     
@@ -89,7 +89,7 @@ try {
     // Award points ONLY if correct AND first correct answer
     $points_awarded = 0;
     if ($is_correct && !$someone_already_correct) {
-        $stmt = $conn->prepare("UPDATE teams SET points = points + ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE quiz_teams SET points = points + ? WHERE id = ?");
         $stmt->execute([$points, $team_id]);
         $points_awarded = $points;
         $message = 'Correct! You got it first! +' . $points . ' points';
