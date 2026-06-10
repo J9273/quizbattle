@@ -35,7 +35,7 @@ if (empty($answer)) {
 
 try {
     // Verify team belongs to episode
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ? AND episode_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ? AND episode_id = ?");
     $stmt->execute([$team_id, $episode_id]);
     $team = $stmt->fetch();
     
@@ -45,7 +45,7 @@ try {
     }
     
     // Verify question exists
-    $stmt = $conn->prepare("SELECT * FROM questions WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_questions WHERE id = ?");
     $stmt->execute([$question_id]);
     $question = $stmt->fetch();
     
@@ -58,7 +58,7 @@ try {
     // First, check if buzzes table exists, if not create it
     try {
         $stmt = $conn->prepare("
-            INSERT INTO buzzes (episode_id, team_id, question_id, answer, buzzed_at)
+            INSERT INTO quiz_buzzes (episode_id, team_id, question_id, answer, buzzed_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
             RETURNING id
         ");
