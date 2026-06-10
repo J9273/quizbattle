@@ -25,7 +25,7 @@ try {
     }
     
     // Get team count
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM teams WHERE episode_id = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM quiz_teams WHERE episode_id = ?");
     $stmt->execute([$episode_id]);
     $team_count = $stmt->fetchColumn();
     
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
             $conn->beginTransaction();
             
             // Delete teams first (foreign key constraint)
-            $stmt = $conn->prepare("DELETE FROM teams WHERE episode_id = ?");
+            $stmt = $conn->prepare("DELETE FROM quiz_teams WHERE episode_id = ?");
             $stmt->execute([$episode_id]);
             $deleted_teams = $stmt->rowCount();
             
