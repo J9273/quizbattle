@@ -27,7 +27,7 @@ try {
     // Get all teams ordered by points (highest first)
     $stmt = $conn->prepare("
         SELECT id, team_name, points, position 
-        FROM teams 
+        FROM quiz_teams 
         WHERE episode_id = ? 
         ORDER BY points DESC, team_name ASC
     ");
