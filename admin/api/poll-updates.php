@@ -56,7 +56,7 @@ try {
             // Get question details
             $stmt = $conn->prepare("
                 SELECT q.*, pc.points 
-                FROM questions q
+                FROM quiz_questions q
                 LEFT JOIN points_config pc ON q.level = pc.level
                 WHERE q.id = ?
             ");
@@ -96,7 +96,7 @@ try {
     // Get scores (all teams)
     $stmt = $conn->prepare("
         SELECT id, team_name, points, position 
-        FROM teams 
+        FROM quiz_teams 
         WHERE episode_id = ? 
         ORDER BY points DESC, team_name ASC
     ");
@@ -107,7 +107,7 @@ try {
     
     // Get own team info if team_id provided
     if ($team_id) {
-        $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ? AND episode_id = ?");
+        $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ? AND episode_id = ?");
         $stmt->execute([$team_id, $episode_id]);
         $own_team = $stmt->fetch();
         
