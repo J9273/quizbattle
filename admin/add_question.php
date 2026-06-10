@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				
         try {
             $stmt = $conn->prepare("
-                INSERT INTO questions (
+                INSERT INTO quiz_questions (
                     question, theme, level, answer, question_format,
                     choice_a, choice_b, choice_c, choice_d, correct_choice, availability
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
