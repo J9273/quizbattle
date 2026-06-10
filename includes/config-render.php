@@ -31,8 +31,8 @@ if ($database_url) {
     define('DB_TYPE', 'mysql');
 }
 
-$database_url = getenv('DATABASE_URL');
-die("DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
+$database_url = getenv('MYSQL_DATABASE_URL');
+die("MYSQL_DATABASE_URL value: " . ($database_url ?: 'NOT FOUND'));
 
 // Create PDO connection
 try {
