@@ -29,7 +29,7 @@ if (!$episode_id || !$team_id || !$question_id) {
 
 try {
     // Get question details
-    $stmt = $conn->prepare("SELECT level FROM questions WHERE id = ?");
+    $stmt = $conn->prepare("SELECT level FROM quiz_questions WHERE id = ?");
     $stmt->execute([$question_id]);
     $question = $stmt->fetch();
     
@@ -45,11 +45,11 @@ try {
     $points = $config ? $config['points'] : 1;
     
     // Award points
-    $stmt = $conn->prepare("UPDATE teams SET points = points + ? WHERE id = ? AND episode_id = ?");
+    $stmt = $conn->prepare("UPDATE quiz_teams SET points = points + ? WHERE id = ? AND episode_id = ?");
     $stmt->execute([$points, $team_id, $episode_id]);
     
     // Get updated team
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE id = ?");
     $stmt->execute([$team_id]);
     $team = $stmt->fetch();
     
