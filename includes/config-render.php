@@ -1,4 +1,7 @@
 <?php
+var_dump(getenv());
+die();
+
 /**
  * Database Configuration for Render (MySQL)
  */
