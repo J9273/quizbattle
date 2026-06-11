@@ -33,7 +33,7 @@ try {
     }
     
     // Get teams for this episode
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY position ASC, points DESC");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY position ASC, points DESC");
     $stmt->execute([$episode_id]);
     $teams = $stmt->fetchAll();
     
