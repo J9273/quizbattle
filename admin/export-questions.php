@@ -27,7 +27,7 @@ try {
             availability,
             created_at,
             updated_at
-        FROM questions
+        FROM quiz_questions
         ORDER BY theme, level, id
     ");
     
