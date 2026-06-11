@@ -24,7 +24,7 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) FROM quiz_episodes");
     $stats['episodes'] = $stmt->fetchColumn();
     
-    $stmt = $conn->query("SELECT COUNT(*) FROM teams");
+    $stmt = $conn->query("SELECT COUNT(*) FROM quiz_teams");
     $stats['teams'] = $stmt->fetchColumn();
     
     $stmt = $conn->query("SELECT COUNT(*) FROM quiz_episodes WHERE status = 'active'");
