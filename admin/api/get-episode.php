@@ -49,10 +49,10 @@ try {
     }
     
     // Get teams for this episode
-    // Only return teams that have actually joined/played
+    // Only return quiz_teams that have actually joined/played
     // Filter out placeholder "Team N" names unless they have points
     $stmt = $conn->prepare("
-        SELECT * FROM teams 
+        SELECT * FROM quiz_teams 
         WHERE episode_id = ? 
         AND (
             points > 0 
