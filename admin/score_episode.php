@@ -25,14 +25,14 @@ try {
     }
     
     // Get teams
-    $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY points DESC");
+    $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY points DESC");
     $stmt->execute([$episode_id]);
     $teams = $stmt->fetchAll();
     
     // Get available questions with points
     $stmt = $conn->query("
         SELECT q.*, pc.points 
-        FROM questions q
+        FROM quiz_questions q
         LEFT JOIN points_config pc ON q.level = pc.level
         WHERE q.availability = 'available'
         ORDER BY q.theme, q.level
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $team_id = (int)$_POST['team_id'];
             $points = (int)$_POST['points'];
             
-            $stmt = $conn->prepare("UPDATE teams SET points = points + ? WHERE id = ? AND episode_id = ?");
+            $stmt = $conn->prepare("UPDATE quiz_teams SET points = points + ? WHERE id = ? AND episode_id = ?");
             $stmt->execute([$points, $team_id, $episode_id]);
             
             echo json_encode(['success' => true]);
@@ -65,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $team_id = (int)$_POST['team_id'];
             $points = (int)$_POST['points'];
             
-            $stmt = $conn->prepare("UPDATE teams SET points = ? WHERE id = ? AND episode_id = ?");
+            $stmt = $conn->prepare("UPDATE quiz_teams SET points = ? WHERE id = ? AND episode_id = ?");
             $stmt->execute([$points, $team_id, $episode_id]);
             
             echo json_encode(['success' => true]);
             
         } elseif ($action === 'get_scores') {
-            $stmt = $conn->prepare("SELECT * FROM teams WHERE episode_id = ? ORDER BY points DESC");
+            $stmt = $conn->prepare("SELECT * FROM quiz_teams WHERE episode_id = ? ORDER BY points DESC");
             $stmt->execute([$episode_id]);
             $teams = $stmt->fetchAll();
             
