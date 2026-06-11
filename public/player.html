@@ -347,7 +347,7 @@
                 try {
                     const response = await fetch(`/admin/api/poll-updates.php?episode_id=${episodeId}&team_id=${teamId}`);
                     const data = await response.json();
-                    
+                
                     if (data.success) {
                         // Check for new question
                         if (data.current_question && data.current_question.id !== currentQuestionId) {
