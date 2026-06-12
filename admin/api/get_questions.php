@@ -43,7 +43,7 @@ try {
                    pc.points 
             FROM quiz_questions q
             LEFT JOIN points_config pc ON q.level = pc.level
-            WHERE q.availability = 'available'
+            WHERE q.question_format = 'both'
             ORDER BY q.theme, q.level
         ");
     }
