@@ -55,11 +55,12 @@ try {
         'questions' => $questions
     ]);
     
-} catch (PDOException $e) {
+
+    } catch (PDOException $e) {
     error_log("Get questions error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'error' => 'Failed to load questions'
+        'error' => $e->getMessage() // ← temporary, show real error
     ]);
 }
 ?>
