@@ -255,7 +255,7 @@
         // Load available episodes on page load
         async function loadEpisodes() {
             try {
-                const response = await fetch('/admin/api/get-episodes.php');
+                 response = await fetch('/admin/api/get-episodes.php');
                 const data = await response.json();
                 
                 const select = document.getElementById('episode-select');
