@@ -21,11 +21,8 @@ try {
             exit;
         }
         
-        $episode_format = $episode['quiz_format'];
-        
-        // Get questions that match the episode format
-        // If episode is 'cutthroat', show cutthroat and both
-        // If episode is 'multiple_choice', show multiple_choice and both
+        $episode_format = strtolower($episode['quiz_format']);
+
         $stmt = $conn->prepare("
             SELECT q.id, q.question, q.theme, q.level, q.answer, q.question_format,
                    q.choice_a, q.choice_b, q.choice_c, q.choice_d, q.correct_choice,
@@ -35,7 +32,7 @@ try {
             WHERE q.availability = 'available'
             AND (q.question_format = ? OR q.question_format = 'both')
             ORDER BY q.theme, q.level
-        ");
+            ");
         $stmt->execute([$episode_format]);
         
     } else {
