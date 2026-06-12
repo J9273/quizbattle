@@ -30,12 +30,14 @@ if (!$episode_id) {
 try {
     // Ensure episode_state table exists
     $conn->exec("
-        CREATE TABLE IF NOT EXISTS episode_state (
-            episode_id INTEGER PRIMARY KEY REFERENCES quiz_episodes(id) ON DELETE CASCADE,
-            current_question_id INTEGER REFERENCES quiz_questions(id) ON DELETE SET NULL,
-            answer_revealed BOOLEAN DEFAULT FALSE,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+    CREATE TABLE IF NOT EXISTS episode_state (
+        episode_id INT PRIMARY KEY,
+        current_question_id INT DEFAULT NULL,
+        answer_revealed TINYINT(1) DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (episode_id) REFERENCES quiz_episodes(id) ON DELETE CASCADE,
+        FOREIGN KEY (current_question_id) REFERENCES quiz_questions(id) ON DELETE SET NULL
+    )
     ");
     
     if ($action === 'display') {
@@ -57,14 +59,14 @@ try {
         
         // Set current question
         $stmt = $conn->prepare("
-    INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
-    VALUES (?, ?, 0, CURRENT_TIMESTAMP)
-    ON DUPLICATE KEY UPDATE 
+        INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
+        VALUES (?, ?, 0, CURRENT_TIMESTAMP)
+        ON DUPLICATE KEY UPDATE 
         current_question_id = VALUES(current_question_id),
         answer_revealed = 0,
         updated_at = CURRENT_TIMESTAMP
-");
-$stmt->execute([$episode_id, $question_id]);
+        ");
+        $stmt->execute([$episode_id, $question_id]);
         
         echo json_encode([
             'success' => true,
