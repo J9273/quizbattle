@@ -57,15 +57,14 @@ try {
         
         // Set current question
         $stmt = $conn->prepare("
-            INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
-            VALUES (?, ?, FALSE, CURRENT_TIMESTAMP)
-            ON CONFLICT (episode_id) 
-            DO UPDATE SET 
-                current_question_id = EXCLUDED.current_question_id,
-                answer_revealed = FALSE,
-                updated_at = CURRENT_TIMESTAMP
-        ");
-        $stmt->execute([$episode_id, $question_id]);
+    INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
+    VALUES (?, ?, 0, CURRENT_TIMESTAMP)
+    ON DUPLICATE KEY UPDATE 
+        current_question_id = VALUES(current_question_id),
+        answer_revealed = 0,
+        updated_at = CURRENT_TIMESTAMP
+");
+$stmt->execute([$episode_id, $question_id]);
         
         echo json_encode([
             'success' => true,
