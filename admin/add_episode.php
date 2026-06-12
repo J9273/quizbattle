@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Teams will be created dynamically as players join via join-episode.php
             
-            $format_label = $quiz_format === 'cutthroat' ? 'CutThroat' : 'Multiple Choice';
+            $format_label = $quiz_format === 'cutthroat' ? 'cutthroat' : 'multiple_choice';
             $success = "Episode '{$episode_name}' created successfully as {$format_label} format! Teams will be added as players join.";
 
             // Clear form
