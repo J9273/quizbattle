@@ -73,8 +73,8 @@ try {
     ]);
     
 } catch (PDOException $e) {
-    // Buzzes table might not exist yet
-    if (strpos($e->getMessage(), 'buzzes') !== false || strpos($e->getMessage(), 'relation') !== false) {
+    // Table might not exist yet
+    if (strpos($e->getMessage(), 'Table') !== false) {
         echo json_encode([
             'success' => true,
             'buzzes' => [],
@@ -85,7 +85,7 @@ try {
         error_log("Get buzzes error: " . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'error' => 'Database error'
+            'error' => 'Database error: ' . $e->getMessage()
         ]);
     }
 }
