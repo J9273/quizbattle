@@ -8,12 +8,9 @@
  * Check if user is logged in, redirect to login if not
  */
 function requireLogin() {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    
     if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-        header("Location: login.php");
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Not authenticated']);
         exit;
     }
 }
