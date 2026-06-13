@@ -288,19 +288,25 @@
             }
         });
 
-        function onHostConnected(data) {
-            document.getElementById('display-episode-id').textContent = data.episode_id;
-            document.getElementById('player-count').textContent = data.player_count;
-            
-            document.getElementById('join-screen').classList.add('hidden');
-            document.getElementById('host-screen').classList.remove('hidden');
-            
-            updateScoreboard(data.scores);
-            loadQuestions();
-        }
+        let questionsLoaded = false;
+
+		function onHostConnected(data) {
+		    document.getElementById('display-episode-id').textContent = data.episode_id;
+		    document.getElementById('player-count').textContent = data.player_count;
+		    
+		    document.getElementById('join-screen').classList.add('hidden');
+		    document.getElementById('host-screen').classList.remove('hidden');
+		    
+		    updateScoreboard(data.scores);
+		    
+		    if (!questionsLoaded) {
+		        loadQuestions();
+		        questionsLoaded = true;
+		    }
+		}
 
         function startPolling() {
-            // Poll every 2 seconds for updates
+            // Poll every 5 seconds for updates
             pollInterval = setInterval(async () => {
                 await refreshScores();
                 await refreshBuzzes();
