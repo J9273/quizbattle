@@ -58,13 +58,13 @@ try {
         }
         
         // Set current question
-        $stmt = $conn->prepare("
-        INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
-        VALUES (?, ?, 0, CURRENT_TIMESTAMP)
-        ON DUPLICATE KEY UPDATE 
-        current_question_id = VALUES(current_question_id),
-        answer_revealed = 0,
-        updated_at = CURRENT_TIMESTAMP
+       $stmt = $conn->prepare("
+            INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
+            VALUES (?, ?, 0, CURRENT_TIMESTAMP) AS new_vals
+            ON DUPLICATE KEY UPDATE 
+                current_question_id = new_vals.current_question_id,
+                answer_revealed = 0,
+                updated_at = CURRENT_TIMESTAMP
         ");
         $stmt->execute([$episode_id, $question_id]);
         
