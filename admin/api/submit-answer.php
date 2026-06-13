@@ -50,10 +50,10 @@ try {
 
     // Insert buzz — update answer if team already buzzed on this question
     $stmt = $conn->prepare("
-        INSERT INTO quiz_buzzes (episode_id, team_id, question_id, answer, buzzed_at)
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+        INSERT INTO quiz_buzzes (episode_id, team_id, question_id, buzzed_at, is_correct )
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
         ON DUPLICATE KEY UPDATE 
-            answer = VALUES(answer),
+            answer = VALUES(is_correct),
             buzzed_at = CURRENT_TIMESTAMP
     ");
     $stmt->execute([$episode_id, $team_id, $question_id, $answer]);
