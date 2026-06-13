@@ -41,24 +41,43 @@ try {
     ");
     
     if ($action === 'display') {
-        // Display a new question
-        if (!$question_id) {
-            echo json_encode(['success' => false, 'error' => 'Question ID required']);
-            exit;
-        }
-        
-        // Verify question exists
+    if (!$question_id) {
+        echo json_encode(['success' => false, 'error' => 'Question ID required']);
+        exit;
+    }
+
+    // Test 1 - can we query quiz_questions?
+    try {
         $stmt = $conn->prepare("SELECT * FROM quiz_questions WHERE id = ?");
         $stmt->execute([$question_id]);
         $question = $stmt->fetch();
-        
         if (!$question) {
-            echo json_encode(['success' => false, 'error' => 'Question not found']);
+            echo json_encode(['success' => false, 'error' => 'Question not found: ' . $question_id]);
             exit;
         }
-        
-        // Set current question
-       $stmt = $conn->prepare("
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Quiz questions error: ' . $e->getMessage()]);
+        exit;
+    }
+
+    // Test 2 - can we create episode_state?
+    try {
+        $conn->exec("CREATE TABLE IF NOT EXISTS episode_state (
+            episode_id INT PRIMARY KEY,
+            current_question_id INT DEFAULT NULL,
+            answer_revealed TINYINT(1) DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (episode_id) REFERENCES quiz_episodes(id) ON DELETE CASCADE,
+            FOREIGN KEY (current_question_id) REFERENCES quiz_questions(id) ON DELETE SET NULL
+        )");
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Create table error: ' . $e->getMessage()]);
+        exit;
+    }
+
+    // Test 3 - can we insert into episode_state?
+    try {
+        $stmt = $conn->prepare("
             INSERT INTO episode_state (episode_id, current_question_id, answer_revealed, updated_at)
             VALUES (?, ?, 0, CURRENT_TIMESTAMP) AS new_vals
             ON DUPLICATE KEY UPDATE 
@@ -67,14 +86,19 @@ try {
                 updated_at = CURRENT_TIMESTAMP
         ");
         $stmt->execute([$episode_id, $question_id]);
-        
-        echo json_encode([
-            'success' => true,
-            'action' => 'display',
-            'question_id' => $question_id,
-            'message' => 'Question displayed to all players'
-        ]);
-        
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Insert error: ' . $e->getMessage()]);
+        exit;
+    }
+
+    echo json_encode([
+        'success' => true,
+        'action' => 'display',
+        'question_id' => $question_id,
+        'message' => 'Question displayed to all players'
+    ]);
+    exit;
+}
     } elseif ($action === 'reveal') {
         // Reveal the answer
         $stmt = $conn->prepare("
