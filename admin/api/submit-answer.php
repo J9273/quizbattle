@@ -53,7 +53,7 @@ try {
         INSERT INTO quiz_buzzes (episode_id, team_id, question_id, buzzed_at, is_correct )
         VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
         ON DUPLICATE KEY UPDATE 
-            answer = VALUES(is_correct),
+            is_correct = VALUES(is_correct),
             buzzed_at = CURRENT_TIMESTAMP
     ");
     $stmt->execute([$episode_id, $team_id, $question_id, $answer]);
