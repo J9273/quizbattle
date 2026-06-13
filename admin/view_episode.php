@@ -190,7 +190,7 @@ $total_points = array_sum(array_column($teams, 'points'));
                             🎮 Start Scoring
                         </a>
                         
-                        <a href="/public/host.html?episode=<?= $episode['id'] ?>" 
+                        <a href="/admin/host.php?episode=<?= $episode['id'] ?>" 
                            target="_blank"
                            class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded text-center">
                             🎯 Open Host Panel
