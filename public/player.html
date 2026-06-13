@@ -499,7 +499,7 @@
             stopMCTimer();
             
             try {
-                const response = await fetch('/admin/api/submit-mc-answer.php', {
+                const response = await fetch('/admin/api/submit-answer.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
