@@ -59,12 +59,18 @@ try {
     $team = $stmt->fetch();
 
     if (!$team) {
-        echo json_encode(['success' => false, 'error' => 'Team not found']);
+      //  echo json_encode(['success' => false, 'error' => 'Team not found']);
+         echo json_encode([
+        'success' => false, 
+        'error' => 'Answer cannot be empty',
+        'received' => $input  // ← temporary, shows full payload
+    ]);
+        
         exit;
     }
 
     if (empty($user_answer)) {
-        echo json_encode(['success' => false, 'error' => 'Answer cannot be empty']);
+       // echo json_encode(['success' => false, 'error' => 'Answer cannot be empty']);
         exit;
     }
 
