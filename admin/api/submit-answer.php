@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
+error_log("Submit answer input: " . json_encode($input)); // ← temporary
 $episode_id  = isset($input['episode_id'])  ? (int)$input['episode_id']           : 0;
 $team_id     = isset($input['team_id'])     ? (int)$input['team_id']              : 0;
 $question_id = isset($input['question_id']) ? (int)$input['question_id']          : 0;
